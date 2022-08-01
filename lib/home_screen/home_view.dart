@@ -9,7 +9,12 @@ class HomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final questions = context.select((HomeViewModel vm) => vm.questions);
+    final questions = context.watch<HomeViewModel>().questions;
+    // final questions = context.select((HomeViewModel vm) => vm.questions);
+    // print('!');
+    // if(questions.isNotEmpty) {
+    //   print(questions.last.urlPhoto);
+    // }
     return Scaffold(
       backgroundColor: Colors.grey,
       appBar: AppBar(),
@@ -33,10 +38,9 @@ class HomeView extends StatelessWidget {
           final provider = Provider.of<HomeViewModel>(context, listen: true);
           final milliseconds = provider.isDragging ? 0 : 400;
           final position = provider.position;
-          if(provider.questions.isEmpty) {
+          if (provider.questions.isEmpty) {
             return const _BuildRestartButton();
           }
-
 
           final center = constraints.smallest.center(Offset.zero);
           final angle = provider.angle * pi / 180;
@@ -64,8 +68,8 @@ class HomeView extends StatelessWidget {
   }
 
   Widget buildCard(BuildContext context, Question question, bool isFront) {
-    // print(question.question);
     final isGoingTrue = context.select((HomeViewModel vm) => vm.isGoingTrue);
+    final pictures = context.watch<HomeViewModel>().pictures;
     Widget? upperText;
     if (isGoingTrue == true && isFront) {
       upperText = const Align(
@@ -83,6 +87,9 @@ class HomeView extends StatelessWidget {
             child: Text('False'),
           ));
     }
+    if (pictures.isEmpty) {
+      return const CircularProgressIndicator();
+    }
     return GestureDetector(
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -92,20 +99,26 @@ class HomeView extends StatelessWidget {
             decoration: BoxDecoration(
               image: DecorationImage(
                 fit: BoxFit.fill,
-                image: NetworkImage(question.urlPhoto),
+                image: NetworkImage(
+                    isFront ? pictures.last : pictures[pictures.length - 2]),
               ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-              upperText??const SizedBox.shrink(),
-              const Spacer(),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 400),
-                child: Text(question.question, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),textAlign: TextAlign.center,),
-              )
-
-            ],),
+                upperText ?? const SizedBox.shrink(),
+                const Spacer(),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 400),
+                  child: Text(
+                    question.question,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 20),
+                    textAlign: TextAlign.center,
+                  ),
+                )
+              ],
+            ),
           ),
         ),
       ),

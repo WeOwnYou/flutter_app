@@ -3,11 +3,13 @@ import 'package:flutter_app/DataProvider.dart';
 import 'package:flutter_app/loosing_screen.dart';
 
 class Question {
-  String urlPhoto;
+  // String urlPhoto;
   String question;
   bool answer;
   Question(
-      {required this.answer, required this.urlPhoto, required this.question});
+      {required this.answer,
+      // required this.urlPhoto,
+      required this.question});
 }
 
 class HomeViewModel extends ChangeNotifier {
@@ -17,29 +19,43 @@ class HomeViewModel extends ChangeNotifier {
   double _angle = 0;
   Offset _position = Offset.zero;
   bool? _isGoingTrue;
-  final List<Question> _questions = [];
+  List<Question> _questions = [];
+  List<String> _pictures = [];
 
   bool? get isGoingTrue => _isGoingTrue;
   Offset get position => _position;
   double get angle => _angle;
   bool get isDragging => _isDragging;
   List<Question> get questions => _questions;
+  List<String> get pictures => _pictures;
 
   HomeViewModel(this._context) {
     _loadData();
   }
 
   _loadData() async {
+    // print((await DataProvider.getPhoto()).data['urls']['full'] as String);
+    _loadPictures();
     for (Map<String, dynamic> questionData in DataProvider.jsonQuestionsData) {
       Question question = Question(
-          question: questionData['question_text'],
-          answer: questionData['question_answer'],
-          // urlPhoto:
-          //     'https://miro.medium.com/max/1200/1*ul46xGjg18pYRL9BufPn_w.png');
-          urlPhoto:
-              (await DataProvider.getPhoto()).data['urls']['full'] as String);
+        question: questionData['question_text'],
+        answer: questionData['question_answer'],
+      );
+      // urlPhoto:
+      //     'https://miro.medium.com/max/1200/1*ul46xGjg18pYRL9BufPn_w.png');
+      // urlPhoto:
+      //     (await DataProvider.getPhoto()).data['urls']['full'] as String);
       _questions.add(question);
     }
+
+    notifyListeners();
+  }
+
+  _loadPictures() async {
+    _pictures.insert(
+        0, (await DataProvider.getPhoto()).data['urls']['full'] as String);
+    _pictures.insert(
+        0, (await DataProvider.getPhoto()).data['urls']['full'] as String);
   }
 
   startPosition(DragStartDetails details) {
@@ -70,6 +86,7 @@ class HomeViewModel extends ChangeNotifier {
       _resetPosition();
       return;
     }
+    _loadPictures();
     _swiped(answer);
   }
 
