@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_app/home_screen/home_view_model.dart';
 import 'package:provider/provider.dart';
@@ -7,64 +9,123 @@ class HomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final questions = context.select((HomeViewModel vm) => vm.questions);
     return Scaffold(
       backgroundColor: Colors.grey,
       appBar: AppBar(),
       body: Center(
-        child: GestureDetector(
-          child: Builder(
-            builder: (context) {
-              final provider =
-                  Provider.of<HomeViewModel>(context, listen: false);
-              final milliseconds = provider.isDragging ? 0 : 400;
-              final position = provider.position;
-              return AnimatedContainer(
-                duration: Duration(milliseconds: milliseconds),
-                transform: Matrix4.identity()
-                  ..translate(position.dx, position.dy),
-                child: buildClipRRect(),
-              );
-            },
+          child: Stack(
+        children: questions.map((question) {
+          if (question == questions.last) {
+            return buildFrontCard(context, question);
+          } else {
+            return buildCard(context, question, false);
+          }
+        }).toList(),
+      )),
+    );
+  }
+
+  Widget buildFrontCard(BuildContext context, Question question) {
+    return GestureDetector(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final provider = Provider.of<HomeViewModel>(context, listen: true);
+          final milliseconds = provider.isDragging ? 0 : 400;
+          final position = provider.position;
+          if(provider.questions.isEmpty) {
+            return const _BuildRestartButton();
+          }
+
+
+          final center = constraints.smallest.center(Offset.zero);
+          final angle = provider.angle * pi / 180;
+          final rotatedMatrix = Matrix4.identity()
+            ..translate(center.dx, center.dy)
+            ..rotateZ(angle)
+            ..translate(-center.dx, -center.dy);
+          return AnimatedContainer(
+            duration: Duration(milliseconds: milliseconds),
+            transform: rotatedMatrix..translate(position.dx, position.dy),
+            child: buildCard(context, question, true),
+          );
+        },
+      ),
+      onPanStart: (details) {
+        context.read<HomeViewModel>().startPosition(details);
+      },
+      onPanUpdate: (details) {
+        context.read<HomeViewModel>().updatePosition(details);
+      },
+      onPanEnd: (details) {
+        context.read<HomeViewModel>().endPosition();
+      },
+    );
+  }
+
+  Widget buildCard(BuildContext context, Question question, bool isFront) {
+    // print(question.question);
+    final isGoingTrue = context.select((HomeViewModel vm) => vm.isGoingTrue);
+    Widget? upperText;
+    if (isGoingTrue == true && isFront) {
+      upperText = const Align(
+          alignment: Alignment.topLeft,
+          child: Padding(
+            padding: EdgeInsets.only(left: 20.0),
+            child: Text('True'),
+          ));
+    }
+    if (isGoingTrue == false && isFront) {
+      upperText = const Align(
+          alignment: Alignment.topRight,
+          child: Padding(
+            padding: EdgeInsets.only(right: 20.0),
+            child: Text('False'),
+          ));
+    }
+    return GestureDetector(
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(30),
+          child: Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                fit: BoxFit.fill,
+                image: NetworkImage(question.urlPhoto),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+              upperText??const SizedBox.shrink(),
+              const Spacer(),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 400),
+                child: Text(question.question, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),textAlign: TextAlign.center,),
+              )
+
+            ],),
           ),
-          onPanStart: (details) {
-            final provider = Provider.of<HomeViewModel>(context, listen: false);
-
-            provider.startPosition(details);
-          },
-          onPanUpdate: (details) {
-            final provider = Provider.of<HomeViewModel>(context, listen: false);
-
-            provider.updatePosition(details);
-          },
-          onPanEnd: (details) {
-            final provider = Provider.of<HomeViewModel>(context, listen: false);
-
-            provider.endPosition();
-          },
         ),
       ),
     );
   }
+}
 
-  ClipRRect buildClipRRect() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(30),
-      child: Container(
-        decoration: const BoxDecoration(
-          color: Colors.red,
-          image: DecorationImage(
-            image: NetworkImage(
-                'https://miro.medium.com/max/1200/1*ul46xGjg18pYRL9BufPn_w.png'),
-          ),
+class _BuildRestartButton extends StatelessWidget {
+  const _BuildRestartButton({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: ElevatedButton(
+          onPressed: context.read<HomeViewModel>().resetImages,
+          child: const Text('Reset'),
         ),
-        // fit: BoxFit.cover,
-        // image: ResizeImage(
-        //   Image.network(
-        //           'https://miro.medium.com/max/1200/1*ul46xGjg18pYRL9BufPn_w.png')
-        //       .image,
-        //   height: height.toInt(),
-        //   width: width.toInt(),
-        // )),
       ),
     );
   }
