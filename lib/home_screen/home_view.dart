@@ -9,26 +9,62 @@ class HomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final questions = context.watch<HomeViewModel>().questions;
-    // final questions = context.select((HomeViewModel vm) => vm.questions);
-    // print('!');
-    // if(questions.isNotEmpty) {
-    //   print(questions.last.urlPhoto);
-    // }
     return Scaffold(
-      backgroundColor: Colors.grey,
-      appBar: AppBar(),
-      body: Center(
-          child: Stack(
-        children: questions.map((question) {
-          if (question == questions.last) {
-            return buildFrontCard(context, question);
-          } else {
-            return buildCard(context, question, false);
-          }
-        }).toList(),
-      )),
-    );
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          title: Text(
+            '< False or True >',
+            style:
+                TextStyle(color: Theme.of(context).textTheme.titleLarge?.color),
+          ),
+        ),
+        body: StreamBuilder<HomeState>(
+          initialData:
+              Provider.of<HomeViewModel>(context, listen: false).initialState,
+          stream: Provider.of<HomeViewModel>(context, listen: false).stream,
+          builder: (ctx, snapshot) {
+            switch (snapshot.connectionState) {
+              case ConnectionState.none:
+              case ConnectionState.waiting:
+                return const Center(child: CircularProgressIndicator());
+              case ConnectionState.active:
+              case ConnectionState.done:
+                if (snapshot.requireData.complete) {
+                  return ElevatedButton(
+                      onPressed: () {}, child: const Text('Reset'));
+                }
+                return Stack(
+                  children: snapshot.requireData.questions != null &&
+                          snapshot.requireData.questions!.isNotEmpty
+                      ? snapshot.requireData.questions!.map((question) {
+                          if (question ==
+                              snapshot.requireData.questions!.last) {
+                            return buildFrontCard(context, question);
+                          } else {
+                            return buildCard(context, question);
+                          }
+                        }).toList()
+                      : [],
+                );
+            }
+          },
+        )
+        /*
+      Center(
+        child: Stack(
+          children: questions.map((question) {
+            if (question == questions.last) {
+              return buildFrontCard(context, question);
+            } else {
+              return buildCard(context, question, false);
+            }
+          }).toList(),
+        ),
+      ),
+
+       */
+        );
   }
 
   Widget buildFrontCard(BuildContext context, Question question) {
@@ -38,10 +74,6 @@ class HomeView extends StatelessWidget {
           final provider = Provider.of<HomeViewModel>(context, listen: true);
           final milliseconds = provider.isDragging ? 0 : 400;
           final position = provider.position;
-          if (provider.questions.isEmpty) {
-            return const _BuildRestartButton();
-          }
-
           final center = constraints.smallest.center(Offset.zero);
           final angle = provider.angle * pi / 180;
           final rotatedMatrix = Matrix4.identity()
@@ -51,7 +83,7 @@ class HomeView extends StatelessWidget {
           return AnimatedContainer(
             duration: Duration(milliseconds: milliseconds),
             transform: rotatedMatrix..translate(position.dx, position.dy),
-            child: buildCard(context, question, true),
+            child: buildCard(context, question,),
           );
         },
       ),
@@ -67,58 +99,60 @@ class HomeView extends StatelessWidget {
     );
   }
 
-  Widget buildCard(BuildContext context, Question question, bool isFront) {
-    final isGoingTrue = context.select((HomeViewModel vm) => vm.isGoingTrue);
-    final pictures = context.watch<HomeViewModel>().pictures;
+  Widget buildCard(BuildContext context, Question question) {
     Widget? upperText;
-    if (isGoingTrue == true && isFront) {
-      upperText = const Align(
-          alignment: Alignment.topLeft,
-          child: Padding(
-            padding: EdgeInsets.only(left: 20.0),
-            child: Text('True'),
-          ));
-    }
-    if (isGoingTrue == false && isFront) {
-      upperText = const Align(
-          alignment: Alignment.topRight,
-          child: Padding(
-            padding: EdgeInsets.only(right: 20.0),
-            child: Text('False'),
-          ));
-    }
-    if (pictures.isEmpty) {
-      return const CircularProgressIndicator();
-    }
-    return GestureDetector(
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(30),
-          child: Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                fit: BoxFit.fill,
-                image: NetworkImage(
-                    isFront ? pictures.last : pictures[pictures.length - 2]),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                upperText ?? const SizedBox.shrink(),
-                const Spacer(),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 400),
+    // if ((isGoingTrue ?? false) && isFront) {
+    //   upperText = const Align(
+    //     alignment: Alignment.topLeft,
+    //     child: Padding(
+    //       padding: EdgeInsets.only(left: 20.0),
+    //       child: Text('True'),
+    //     ),
+    //   );
+    // }
+    // if (isGoingTrue == false && isFront) {
+    //   upperText = const Align(
+    //     alignment: Alignment.topRight,
+    //     child: Padding(
+    //       padding: EdgeInsets.only(right: 20.0),
+    //       child: Text('False'),
+    //     ),
+    //   );
+    // }
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(30),
+        child: Container(
+          decoration: question.url == null
+              ? const BoxDecoration(
+                  color: Colors.blueGrey,
+                )
+              : BoxDecoration(
+                  color: Colors.blueGrey,
+                  image: DecorationImage(
+                    fit: BoxFit.fill,
+                    image: NetworkImage(
+                      question.url!,
+                    ),
+                  ),
+                ),
+          child: Column(
+            children: [
+              upperText ?? const SizedBox.shrink(),
+              Expanded(
+                child: Center(
                   child: Text(
                     question.question,
                     style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 20),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
                     textAlign: TextAlign.center,
                   ),
-                )
-              ],
-            ),
+                ),
+              )
+            ],
           ),
         ),
       ),

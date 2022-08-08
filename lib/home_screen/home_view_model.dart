@@ -1,69 +1,219 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_app/DataProvider.dart';
+import 'package:flutter_app/core/view_model.dart';
 import 'package:flutter_app/loosing_screen.dart';
 
+@immutable
 class Question {
-  // String urlPhoto;
-  String question;
-  bool answer;
-  Question(
-      {required this.answer,
-      // required this.urlPhoto,
-      required this.question});
+  final String question;
+  final bool answer;
+  final String? url;
+  const Question({required this.answer, required this.question, this.url});
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Question &&
+          runtimeType == other.runtimeType &&
+          question == other.question &&
+          answer == other.answer &&
+          url == other.url;
+
+  @override
+  int get hashCode => question.hashCode ^ answer.hashCode ^ url.hashCode;
+
+  Question copyWith({
+    String? question,
+    bool? answer,
+    String? url,
+  }) {
+    return Question(
+      question: question ?? this.question,
+      answer: answer ?? this.answer,
+      url: url ?? this.url,
+    );
+  }
 }
 
-class HomeViewModel extends ChangeNotifier {
+@immutable
+class HomeState {
+  final List<Question>? questions;
+  final bool isLoading;
+  final bool complete;
+  final bool isFailed;
+
+  const HomeState({
+    this.questions,
+    this.isLoading = false,
+    this.complete = false,
+    this.isFailed = false,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is HomeState &&
+          runtimeType == other.runtimeType &&
+          questions == other.questions &&
+          isLoading == other.isLoading &&
+          complete == other.complete &&
+          isFailed == other.isFailed;
+
+  @override
+  int get hashCode =>
+      questions.hashCode ^
+      isLoading.hashCode ^
+      complete.hashCode ^
+      isFailed.hashCode;
+
+  HomeState copyWith({
+    List<Question>? questions,
+    bool? isLoading,
+    bool? complete,
+    bool? isFailed,
+  }) {
+    return HomeState(
+      questions: questions ?? this.questions,
+      isLoading: isLoading ?? this.isLoading,
+      complete: complete ?? this.complete,
+      isFailed: isFailed ?? this.isFailed,
+    );
+  }
+
+  factory HomeState.loading() => const HomeState(
+        questions: [],
+        isLoading: true,
+      );
+
+  factory HomeState.data(List<Question> data) => HomeState(
+        questions: data,
+      );
+
+  factory HomeState.complete() => const HomeState(
+        questions: [],
+        complete: true,
+      );
+
+  factory HomeState.failed() => const HomeState(
+        questions: [],
+        isFailed: true,
+      );
+}
+
+abstract class HomeEvent {}
+
+class InitializeEvent extends HomeEvent {}
+
+class SwitchCardEvent extends HomeEvent {
+  DragUpdateDetails details;
+
+  SwitchCardEvent(this.details);
+}
+
+class HomeViewModel extends ViewModel {
   final BuildContext _context;
   bool _isDragging = false;
   late Size _screenSize;
   double _angle = 0;
   Offset _position = Offset.zero;
   bool? _isGoingTrue;
-  List<Question> _questions = [];
-  List<String> _pictures = [];
+  HomeState _initialState = HomeState.data(const <Question>[]);
+  HomeState _newState = HomeState.data(const []);
+  late final Stream<HomeState> _stream;
+  final StreamController<HomeEvent> _streamController =
+      StreamController<HomeEvent>.broadcast();
 
+  HomeState get initialState => _initialState;
+  Stream<HomeState> get stream => _stream;
   bool? get isGoingTrue => _isGoingTrue;
   Offset get position => _position;
   double get angle => _angle;
   bool get isDragging => _isDragging;
-  List<Question> get questions => _questions;
-  List<String> get pictures => _pictures;
 
-  HomeViewModel(this._context) {
-    _loadData();
+  HomeViewModel(this._context) : super(_context) {
+    _stream = _streamController.stream
+        .asyncExpand<HomeState>(_mapEventToState)
+        .asyncExpand<HomeState>(_updateState)
+        .asBroadcastStream();
+    _stream.listen((event) { });
+    _streamController.add(InitializeEvent());
   }
 
-  _loadData() async {
-    // print((await DataProvider.getPhoto()).data['urls']['full'] as String);
-    _loadPictures();
-    for (Map<String, dynamic> questionData in DataProvider.jsonQuestionsData) {
-      Question question = Question(
-        question: questionData['question_text'],
-        answer: questionData['question_answer'],
-      );
-      // urlPhoto:
-      //     'https://miro.medium.com/max/1200/1*ul46xGjg18pYRL9BufPn_w.png');
-      // urlPhoto:
-      //     (await DataProvider.getPhoto()).data['urls']['full'] as String);
-      _questions.add(question);
+  @override
+  void dispose() {
+    super.dispose();
+    _streamController.close();
+  }
+
+  @override
+  void onInit() {
+    super.onInit();
+  }
+
+  Stream<HomeState>? _mapEventToState(HomeEvent event) async* {
+    switch (event.runtimeType) {
+      case InitializeEvent:
+        await _loadData();
+        yield const HomeState().copyWith(
+          questions: _newState.questions,
+          isLoading: _newState.isLoading,
+          complete: _newState.complete,
+          isFailed: _newState.isFailed,
+        );
+        break;
     }
-
-    notifyListeners();
   }
 
-  _loadPictures() async {
-    _pictures.insert(
-        0, (await DataProvider.getPhoto()).data['urls']['full'] as String);
-    _pictures.insert(
-        0, (await DataProvider.getPhoto()).data['urls']['full'] as String);
+  Stream<HomeState>? _updateState(HomeState state) async* {
+    if (state == _initialState) return;
+    _initialState = state;
+    yield state;
   }
 
-  startPosition(DragStartDetails details) {
+  Future<void> _loadData() async {
+    final questionList = <Question>[];
+    const List<dynamic> jsonData = DataProvider.jsonQuestionsData;
+    final photoList = _loadPhotos(jsonData.length);
+    for (var i = 0; i < jsonData.length; i++) {
+      final questionData = jsonData[i] as Map<String, dynamic>;
+      final question = Question(
+        question: questionData['question_text'] as String,
+        answer: questionData['question_answer'] as bool,
+        url: photoList.isNotEmpty ? photoList[i] : null,
+      );
+      questionList.add(question);
+    }
+    questionList.shuffle();
+    _newState = HomeState.data(questionList.reversed.toList());
+  }
+
+  List<String> _loadPhotos(int length) {
+    final photos = <String>[];
+    safe(() async {
+      final dynamic json = (await DataProvider.getPhoto(length)).data;
+      final jsonList = json as List<dynamic>;
+      for (final jsonMap in jsonList) {
+        // ignore: non_constant_identifier_names
+        photos.add(
+          ((jsonMap as Map<String, dynamic>)['urls']
+                  as Map<String, dynamic>)['full']
+              .toString(),
+        );
+      }
+    });
+    return photos;
+  }
+
+  Future<void> _loadPictures() async {}
+
+  void startPosition(DragStartDetails details) {
     _isDragging = true;
     notifyListeners();
   }
 
-  updatePosition(DragUpdateDetails details) {
+  void updatePosition(DragUpdateDetails details) {
     _screenSize = MediaQuery.of(_context).size;
     _position += details.delta;
     final x = _position.dx;
@@ -77,7 +227,7 @@ class HomeViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  endPosition() {
+  void endPosition() {
     _isDragging = false;
     notifyListeners();
 
@@ -86,7 +236,6 @@ class HomeViewModel extends ChangeNotifier {
       _resetPosition();
       return;
     }
-    _loadPictures();
     _swiped(answer);
   }
 
@@ -99,7 +248,7 @@ class HomeViewModel extends ChangeNotifier {
     return null;
   }
 
-  _swiped(bool isRight) {
+  void _swiped(bool isRight) {
     if (isRight) {
       _angle = 20;
       _position += Offset(_screenSize.width * 2, 0);
@@ -107,23 +256,32 @@ class HomeViewModel extends ChangeNotifier {
       _angle = -20;
       _position -= Offset(_screenSize.width * 2, 0);
     }
-    if (isRight == questions.last.answer) {
+    if (isRight == _newState.questions?.last.answer) {
       _nextCard();
     } else {
-      Navigator.push(
-          _context,
-          MaterialPageRoute(
-              builder: (BuildContext context) => const LoosingScreen()));
+      Navigator.push<LoosingScreen>(
+        _context,
+        MaterialPageRoute(
+          builder: (_) => const LoosingScreen(),
+        ),
+      );
     }
   }
 
-  _nextCard() async {
-    await Future.delayed(const Duration(milliseconds: 200));
-    _questions.removeLast();
+  Future<void> _nextCard() async {
+    if (_initialState.questions == null || _initialState.questions!.isEmpty) {
+      _newState = HomeState.complete();
+    }
+    await Future<Duration?>.delayed(
+      const Duration(milliseconds: 200),
+    );
+    _newState = HomeState.data(
+      [..._initialState.questions!]..removeLast(),
+    );
     _resetPosition();
   }
 
-  _resetPosition() {
+  void _resetPosition() {
     _isDragging = false;
     _position = Offset.zero;
     _angle = 0;
@@ -131,7 +289,7 @@ class HomeViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  resetImages() {
+  void resetImages() {
     _loadData();
     notifyListeners();
   }

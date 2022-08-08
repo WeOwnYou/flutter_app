@@ -14,51 +14,62 @@ class _LoosingScreenState extends State<LoosingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(children: [
-        Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                _BuildLoosAnimatedIcon(),
-                _BuildLoosAnimatedIcon(),
-              ],
-            ),
-            const _BuildLoosAnimatedIcon(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                _BuildLoosAnimatedIcon(),
-                _BuildLoosAnimatedIcon(),
-              ],
-            )
-          ],
-        ),
-        GestureDetector(
-          onTap: (){startAgain(context);},
-          child: const Center(
+      body: Stack(
+        children: [
+          Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: const [
+                  _BuildLoosAnimatedIcon(),
+                  _BuildLoosAnimatedIcon(),
+                ],
+              ),
+              const _BuildLoosAnimatedIcon(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: const [
+                  _BuildLoosAnimatedIcon(),
+                  _BuildLoosAnimatedIcon(),
+                ],
+              )
+            ],
+          ),
+          GestureDetector(
+            onTap: () {
+              startAgain(context);
+            },
+            child: const Center(
               child: RotationTransition(
                 turns: AlwaysStoppedAnimation(-45 / 360),
                 child: Text(
-            'Start Again',
-            style: TextStyle(
-                  fontSize: 40, color: Colors.red, fontWeight: FontWeight.bold),
+                  'Start Again',
+                  style: TextStyle(
+                    fontSize: 40,
+                    color: Colors.red,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
           ),
-              )),
-        ),
-      ]),
+        ],
+      ),
     );
   }
-  startAgain(BuildContext context){
-    Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(
-            builder: (context) => ChangeNotifierProvider(
-              create: (BuildContext context) => IntroViewModel(context),
-              child:  const IntroView(),
-            )),
-            (route) => false);
+
+  void startAgain(BuildContext context) {
+    Navigator.pushAndRemoveUntil<ChangeNotifierProvider>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChangeNotifierProvider(
+          create: IntroViewModel.new,
+          child: const IntroView(),
+        ),
+      ),
+      (route) => false,
+    );
   }
 }
 
@@ -90,7 +101,7 @@ class _BuildLoosAnimatedIconState extends State<_BuildLoosAnimatedIcon> {
       child: const FittedBox(child: Icon(Icons.new_releases_outlined)),
       onEnd: () {
         setState(() {
-          size = (size == maxSize ? 0 : maxSize);
+          size = size == maxSize ? 0 : maxSize;
         });
       },
     );

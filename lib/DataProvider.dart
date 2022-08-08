@@ -80,14 +80,15 @@ abstract class DataProvider {
       'full_answer': 'С низкой орбиты можно увидеть отнюдь не только Великую Китайскую стену. Египетские пирамиды, например, видно ничуть не хуже.',
     },
   ];
-  static Future<Response> getPhoto(){
+  static Future<Response<dynamic>> getPhoto(int count) async {
     const clientId = 'c1oJzOrdHEl9fu9IKiO4Ocv_Gihk8Cl3mvgFoJpuXCg';
-    const clientSecret = '2fd6CSG1lujjheDhGPf58psnw9BuGtd9quzv9756UxE';
 
-    final result = Dio().get('https://api.unsplash.com/photos/random', queryParameters: {
+    final result = Dio().get<dynamic>('https://111api.unsplash.com/photos/random', queryParameters: <String, String>{
       'client_id': clientId,
-      'client_secret': clientSecret
-    });
+      'count': '$count',
+    },);
     return result;
   }
 }
+
+
