@@ -7,19 +7,22 @@ class IntroViewModel extends ChangeNotifier {
   final BuildContext _context;
   bool isGameStarted = false;
   IntroViewModel(this._context);
-  onPlayTapped() {
+
+  void onPlayTapped() {
     isGameStarted = !isGameStarted;
     notifyListeners();
   }
 
-  startGame() {
-    Navigator.pushAndRemoveUntil(
-        _context,
-        MaterialPageRoute(
-            builder: (context) => ChangeNotifierProvider(
-                  create: (BuildContext context) => HomeViewModel(context),
-                  child: const HomeView(),
-                )),
-        (route) => false);
+  void startGame() {
+    Navigator.pushAndRemoveUntil<ChangeNotifierProvider>(
+      _context,
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => ChangeNotifierProvider(
+          create: HomeViewModel.new,
+          child: const HomeView(),
+        ),
+      ),
+      (route) => false,
+    );
   }
 }
