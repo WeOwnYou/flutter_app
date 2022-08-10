@@ -32,7 +32,8 @@ class HomeView extends StatelessWidget {
               case ConnectionState.done:
                 if (snapshot.requireData.complete) {
                   return ElevatedButton(
-                      onPressed: () {}, child: const Text('Reset'));
+                      onPressed: () {}, child: const Text('Reset'),
+                  );
                 }
                 return Stack(
                   children: snapshot.requireData.questions != null &&
@@ -42,7 +43,7 @@ class HomeView extends StatelessWidget {
                               snapshot.requireData.questions!.last) {
                             return buildFrontCard(context, question);
                           } else {
-                            return buildCard(context, question);
+                            return buildCard(question);
                           }
                         }).toList()
                       : [],
@@ -83,23 +84,19 @@ class HomeView extends StatelessWidget {
           return AnimatedContainer(
             duration: Duration(milliseconds: milliseconds),
             transform: rotatedMatrix..translate(position.dx, position.dy),
-            child: buildCard(context, question,),
+            child: buildCard(question),
           );
         },
       ),
-      onPanStart: (details) {
-        context.read<HomeViewModel>().startPosition(details);
-      },
-      onPanUpdate: (details) {
-        context.read<HomeViewModel>().updatePosition(details);
-      },
+      onPanStart: context.read<HomeViewModel>().startPosition,
+      onPanUpdate: context.read<HomeViewModel>().updatePosition,
       onPanEnd: (details) {
-        context.read<HomeViewModel>().endPosition();
+        Provider.of<HomeViewModel>(context, listen: false).add(SwitchCardEvent());
       },
     );
   }
 
-  Widget buildCard(BuildContext context, Question question) {
+  Widget buildCard(Question question) {
     Widget? upperText;
     // if ((isGoingTrue ?? false) && isFront) {
     //   upperText = const Align(

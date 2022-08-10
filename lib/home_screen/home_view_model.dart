@@ -107,9 +107,7 @@ abstract class HomeEvent {}
 class InitializeEvent extends HomeEvent {}
 
 class SwitchCardEvent extends HomeEvent {
-  DragUpdateDetails details;
-
-  SwitchCardEvent(this.details);
+  SwitchCardEvent();
 }
 
 class HomeViewModel extends ViewModel {
@@ -132,14 +130,7 @@ class HomeViewModel extends ViewModel {
   double get angle => _angle;
   bool get isDragging => _isDragging;
 
-  HomeViewModel(this._context) : super(_context) {
-    _stream = _streamController.stream
-        .asyncExpand<HomeState>(_mapEventToState)
-        .asyncExpand<HomeState>(_updateState)
-        .asBroadcastStream();
-    _stream.listen((event) { });
-    _streamController.add(InitializeEvent());
-  }
+  HomeViewModel(this._context) : super(_context);
 
   @override
   void dispose() {
@@ -150,6 +141,12 @@ class HomeViewModel extends ViewModel {
   @override
   void onInit() {
     super.onInit();
+    _stream = _streamController.stream
+        .asyncExpand<HomeState>(_mapEventToState)
+        .asyncExpand<HomeState>(_updateState)
+        .asBroadcastStream();
+    _stream.listen((event) {});
+    _streamController.add(InitializeEvent());
   }
 
   Stream<HomeState>? _mapEventToState(HomeEvent event) async* {
@@ -163,6 +160,14 @@ class HomeViewModel extends ViewModel {
           isFailed: _newState.isFailed,
         );
         break;
+      case SwitchCardEvent:
+        await endPosition();
+        yield const HomeState().copyWith(
+          questions: _newState.questions,
+          isLoading: _newState.isLoading,
+          complete: _newState.complete,
+          isFailed: _newState.isFailed,
+        );
     }
   }
 
@@ -206,7 +211,9 @@ class HomeViewModel extends ViewModel {
     return photos;
   }
 
-  Future<void> _loadPictures() async {}
+  void add(HomeEvent event) {
+    _streamController.add(event);
+  }
 
   void startPosition(DragStartDetails details) {
     _isDragging = true;
@@ -227,16 +234,15 @@ class HomeViewModel extends ViewModel {
     notifyListeners();
   }
 
-  void endPosition() {
+  Future<void> endPosition() async {
     _isDragging = false;
     notifyListeners();
-
     final answer = _getAnswer();
     if (answer == null) {
       _resetPosition();
       return;
     }
-    _swiped(answer);
+    await _swiped(answer);
   }
 
   bool? _getAnswer() {
@@ -248,7 +254,7 @@ class HomeViewModel extends ViewModel {
     return null;
   }
 
-  void _swiped(bool isRight) {
+  Future<void> _swiped(bool isRight) async {
     if (isRight) {
       _angle = 20;
       _position += Offset(_screenSize.width * 2, 0);
@@ -257,9 +263,9 @@ class HomeViewModel extends ViewModel {
       _position -= Offset(_screenSize.width * 2, 0);
     }
     if (isRight == _newState.questions?.last.answer) {
-      _nextCard();
+      await _nextCard();
     } else {
-      Navigator.push<LoosingScreen>(
+      await Navigator.push<LoosingScreen>(
         _context,
         MaterialPageRoute(
           builder: (_) => const LoosingScreen(),
