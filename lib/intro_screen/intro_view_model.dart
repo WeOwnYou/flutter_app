@@ -20,6 +20,7 @@ class IntroViewModel extends ChangeNotifier {
   }
 
   Future<void> startGame() async{
+    isGameStarted = true;
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
@@ -40,7 +41,7 @@ class IntroViewModel extends ChangeNotifier {
     }
   }
 
-  _navigateToGame(){
+  void _navigateToGame(){
     Navigator.pushAndRemoveUntil(
         _context,
         MaterialPageRoute(
@@ -50,7 +51,7 @@ class IntroViewModel extends ChangeNotifier {
             )),
             (route) => false);
   }
-  _navigateToAuth(){
+  void _navigateToAuth(){
     Navigator.pushAndRemoveUntil(
         _context,
         MaterialPageRoute(

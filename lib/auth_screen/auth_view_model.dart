@@ -64,15 +64,5 @@ class AuthViewModel extends ChangeNotifier {
         ),
       ),
     );
-    // Navigator.pushAndRemoveUntil<ChangeNotifierProvider>(
-    //   _context,
-    //   MaterialPageRoute(
-    //     builder: (context) => ChangeNotifierProvider(
-    //       create: (BuildContext context) => HomeViewModel(context),
-    //       child: const HomeView(),
-    //     ),
-    //   ),
-    //   (route) => false,
-    // );
   }
 }
