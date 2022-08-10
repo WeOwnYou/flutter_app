@@ -41,9 +41,10 @@ class _IntroViewState extends State<IntroView>
   @override
   Widget build(BuildContext context) {
     final isGameStarted =
-    context.select((IntroViewModel vm) => vm.isGameStarted);
+        context.select((IntroViewModel vm) => vm.isGameStarted);
 
     return Scaffold(
+      // backgroundColor: Colors.pinkAccent,
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           if (_controller.status == AnimationStatus.completed) {

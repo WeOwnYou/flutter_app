@@ -29,9 +29,9 @@ abstract class ThemeProvider {
   static ThemeData lightTheme = ThemeData(
     unselectedWidgetColor: AppColors.importantLight,
     appBarTheme: const AppBarTheme(
-        systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarBrightness: Brightness.light,
-        )
+      systemOverlayStyle: SystemUiOverlayStyle(
+        statusBarBrightness: Brightness.light,
+      )
     ),
     brightness: Brightness.light,
     scaffoldBackgroundColor: Colors.white,
@@ -44,16 +44,17 @@ abstract class ThemeProvider {
   static ThemeData darkTheme = ThemeData(
     unselectedWidgetColor: AppColors.importantDark,
     appBarTheme: const AppBarTheme(
-        systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarBrightness: Brightness.dark,
-        )
-    ),
+      systemOverlayStyle: SystemUiOverlayStyle(
+        statusBarBrightness: Brightness.dark,
+      )
+  ),
     scaffoldBackgroundColor: Colors.black,
   );
 }
 
 abstract class AppColors {
   /// Общие  Colors
+
   /// Light colors
   static const importantLight = Colors.deepOrange;
 

@@ -1,14 +1,9 @@
 import 'dart:async';
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app/DataProvider.dart';
 import 'package:flutter_app/core/view_model.dart';
-import 'package:flutter_app/intro_screen/intro_view.dart';
-import 'package:flutter_app/intro_screen/intro_view_model.dart';
 import 'package:flutter_app/loosing_screen.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:provider/provider.dart';
 
 @immutable
 class Question {
@@ -20,11 +15,11 @@ class Question {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is Question &&
-              runtimeType == other.runtimeType &&
-              question == other.question &&
-              answer == other.answer &&
-              url == other.url;
+      other is Question &&
+          runtimeType == other.runtimeType &&
+          question == other.question &&
+          answer == other.answer &&
+          url == other.url;
 
   @override
   int get hashCode => question.hashCode ^ answer.hashCode ^ url.hashCode;
@@ -59,12 +54,12 @@ class HomeState {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is HomeState &&
-              runtimeType == other.runtimeType &&
-              questions == other.questions &&
-              isLoading == other.isLoading &&
-              complete == other.complete &&
-              isFailed == other.isFailed;
+      other is HomeState &&
+          runtimeType == other.runtimeType &&
+          questions == other.questions &&
+          isLoading == other.isLoading &&
+          complete == other.complete &&
+          isFailed == other.isFailed;
 
   @override
   int get hashCode =>
@@ -88,23 +83,23 @@ class HomeState {
   }
 
   factory HomeState.loading() => const HomeState(
-    questions: [],
-    isLoading: true,
-  );
+        questions: [],
+        isLoading: true,
+      );
 
   factory HomeState.data(List<Question> data) => HomeState(
-    questions: data,
-  );
+        questions: data,
+      );
 
   factory HomeState.complete() => const HomeState(
-    questions: [],
-    complete: true,
-  );
+        questions: [],
+        complete: true,
+      );
 
   factory HomeState.failed() => const HomeState(
-    questions: [],
-    isFailed: true,
-  );
+        questions: [],
+        isFailed: true,
+      );
 }
 
 abstract class HomeEvent {}
@@ -112,9 +107,7 @@ abstract class HomeEvent {}
 class InitializeEvent extends HomeEvent {}
 
 class SwitchCardEvent extends HomeEvent {
-  DragUpdateDetails details;
-
-  SwitchCardEvent(this.details);
+  SwitchCardEvent();
 }
 
 class HomeViewModel extends ViewModel {
@@ -128,29 +121,32 @@ class HomeViewModel extends ViewModel {
   HomeState _newState = HomeState.data(const []);
   late final Stream<HomeState> _stream;
   final StreamController<HomeEvent> _streamController =
-  StreamController<HomeEvent>.broadcast();
+      StreamController<HomeEvent>.broadcast();
 
   HomeState get initialState => _initialState;
-  HomeState get newState => _newState;
   Stream<HomeState> get stream => _stream;
   bool? get isGoingTrue => _isGoingTrue;
   Offset get position => _position;
   double get angle => _angle;
   bool get isDragging => _isDragging;
 
-  HomeViewModel(this._context) : super(_context) {
-    _stream = _streamController.stream
-        .asyncExpand<HomeState>(_mapEventToState)
-        .asyncExpand<HomeState>(_updateState)
-        .asBroadcastStream();
-    _stream.listen((event) { });
-    _streamController.add(InitializeEvent());
-  }
+  HomeViewModel(this._context) : super(_context);
 
   @override
   void dispose() {
     super.dispose();
     _streamController.close();
+  }
+
+  @override
+  void onInit() {
+    super.onInit();
+    _stream = _streamController.stream
+        .asyncExpand<HomeState>(_mapEventToState)
+        .asyncExpand<HomeState>(_updateState)
+        .asBroadcastStream();
+    _stream.listen((event) {});
+    _streamController.add(InitializeEvent());
   }
 
   Stream<HomeState>? _mapEventToState(HomeEvent event) async* {
@@ -164,6 +160,14 @@ class HomeViewModel extends ViewModel {
           isFailed: _newState.isFailed,
         );
         break;
+      case SwitchCardEvent:
+        await endPosition();
+        yield const HomeState().copyWith(
+          questions: _newState.questions,
+          isLoading: _newState.isLoading,
+          complete: _newState.complete,
+          isFailed: _newState.isFailed,
+        );
     }
   }
 
@@ -199,13 +203,18 @@ class HomeViewModel extends ViewModel {
         // ignore: non_constant_identifier_names
         photos.add(
           ((jsonMap as Map<String, dynamic>)['urls']
-          as Map<String, dynamic>)['full']
+                  as Map<String, dynamic>)['full']
               .toString(),
         );
       }
     });
     return photos;
   }
+
+  void add(HomeEvent event) {
+    _streamController.add(event);
+  }
+
   void startPosition(DragStartDetails details) {
     _isDragging = true;
     notifyListeners();
@@ -221,19 +230,19 @@ class HomeViewModel extends ViewModel {
       _isGoingTrue = false;
     }
     _angle = 45 * x / _screenSize.width;
+    // if()
     notifyListeners();
   }
 
-  void endPosition() {
+  Future<void> endPosition() async {
     _isDragging = false;
     notifyListeners();
-
     final answer = _getAnswer();
     if (answer == null) {
       _resetPosition();
       return;
     }
-    _swiped(answer);
+    await _swiped(answer);
   }
 
   bool? _getAnswer() {
@@ -245,7 +254,7 @@ class HomeViewModel extends ViewModel {
     return null;
   }
 
-  void _swiped(bool isRight) {
+  Future<void> _swiped(bool isRight) async {
     if (isRight) {
       _angle = 20;
       _position += Offset(_screenSize.width * 2, 0);
@@ -254,9 +263,9 @@ class HomeViewModel extends ViewModel {
       _position -= Offset(_screenSize.width * 2, 0);
     }
     if (isRight == _newState.questions?.last.answer) {
-      _nextCard();
+      await _nextCard();
     } else {
-      Navigator.push<LoosingScreen>(
+      await Navigator.push<LoosingScreen>(
         _context,
         MaterialPageRoute(
           builder: (_) => const LoosingScreen(),
@@ -272,11 +281,9 @@ class HomeViewModel extends ViewModel {
     await Future<Duration?>.delayed(
       const Duration(milliseconds: 200),
     );
-    final data = [..._newState.questions!]..removeLast();
     _newState = HomeState.data(
-      data,
+      [..._initialState.questions!]..removeLast(),
     );
-    _updateState(_newState);
     _resetPosition();
   }
 
@@ -289,26 +296,7 @@ class HomeViewModel extends ViewModel {
   }
 
   void resetImages() {
-    _streamController.add(InitializeEvent());
     _loadData();
     notifyListeners();
-  }
-
-
-  void signOut() {
-    FirebaseAuth.instance.signOut();
-    const secureStorage = FlutterSecureStorage();
-    secureStorage.delete(key: 'email');
-    secureStorage.delete(key: 'password');
-    Navigator.pushAndRemoveUntil<ChangeNotifierProvider>(
-      _context,
-      MaterialPageRoute(
-        builder: (context) => ChangeNotifierProvider(
-          create: IntroViewModel.new,
-          child: const IntroView(),
-        ),
-      ),
-          (route) => false,
-    );
   }
 }

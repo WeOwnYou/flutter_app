@@ -68,7 +68,7 @@ class _LoosingScreenState extends State<LoosingScreen> {
           child: const IntroView(),
         ),
       ),
-          (route) => false,
+      (route) => false,
     );
   }
 }
