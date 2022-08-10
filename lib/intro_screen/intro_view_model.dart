@@ -45,7 +45,7 @@ class IntroViewModel extends ChangeNotifier {
         _context,
         MaterialPageRoute(
             builder: (context) => ChangeNotifierProvider(
-              create: (BuildContext context) => HomeViewModel(context),
+              create: HomeViewModel.new,
               child: const HomeView(),
             )),
             (route) => false);
@@ -55,7 +55,7 @@ class IntroViewModel extends ChangeNotifier {
         _context,
         MaterialPageRoute(
             builder: (context) => ChangeNotifierProvider(
-              create: (BuildContext context) => AuthViewModel(_context),
+              create: AuthViewModel.new,
               child: const AuthView(),
             )),
             (route) => false);
