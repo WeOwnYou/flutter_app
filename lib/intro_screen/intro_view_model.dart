@@ -1,25 +1,63 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_app/auth_screen/auth_view.dart';
+import 'package:flutter_app/auth_screen/auth_view_model.dart';
+import 'package:flutter_app/firebase_options.dart';
 import 'package:flutter_app/home_screen/home_view.dart';
 import 'package:flutter_app/home_screen/home_view_model.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 
 class IntroViewModel extends ChangeNotifier {
   final BuildContext _context;
   bool isGameStarted = false;
   IntroViewModel(this._context);
-  onPlayTapped() {
+
+  void onPlayTapped() {
     isGameStarted = !isGameStarted;
     notifyListeners();
   }
 
-  startGame() {
+  Future<void> startGame() async{
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    const FlutterSecureStorage secureStorage = FlutterSecureStorage();
+    final email = await secureStorage.read(key: 'email');
+    final password = await secureStorage.read(key: 'password');
+    if(email != null && password != null){
+      try {
+        await FirebaseAuth.instance.signInWithEmailAndPassword(
+            email: email, password: password);
+        _navigateToGame();
+      }on Exception {
+        _navigateToAuth();
+      }
+    }
+    else{
+      _navigateToAuth();
+    }
+  }
+
+  _navigateToGame(){
     Navigator.pushAndRemoveUntil(
         _context,
         MaterialPageRoute(
             builder: (context) => ChangeNotifierProvider(
-                  create: (BuildContext context) => HomeViewModel(context),
-                  child: const HomeView(),
-                )),
-        (route) => false);
+              create: (BuildContext context) => HomeViewModel(context),
+              child: const HomeView(),
+            )),
+            (route) => false);
+  }
+  _navigateToAuth(){
+    Navigator.pushAndRemoveUntil(
+        _context,
+        MaterialPageRoute(
+            builder: (context) => ChangeNotifierProvider(
+              create: (BuildContext context) => AuthViewModel(_context),
+              child: const AuthView(),
+            )),
+            (route) => false);
   }
 }
