@@ -112,16 +112,7 @@ class _IntroViewState extends State<IntroView>
 
   void startGame() {
     final isAuth = FirebaseAuth.instance.currentUser != null;
-    Navigator.of(context).pushNamedAndRemoveUntil(
-      isAuth ? Routes.homeScreen : Routes.authScreen,
-      (_) => false,
-    );
-  }
-
-  Future<void> _navigateToAuthScreen() async {
-    await FirebaseAuth.instance.signInWithEmailAndPassword(
-      email: '123@123.com',
-      password: '123456',
-    );
+    Navigator.of(context)
+        .pushReplacementNamed(isAuth ? Routes.homeScreen : Routes.authScreen);
   }
 }
