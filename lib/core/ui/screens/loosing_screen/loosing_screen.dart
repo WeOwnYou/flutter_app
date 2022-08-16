@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_app/intro_screen/intro_view.dart';
-import 'package:flutter_app/intro_screen/intro_view_model.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_app/core/navigation/main_navigation.dart';
 
 class LoosingScreen extends StatefulWidget {
   const LoosingScreen({Key? key}) : super(key: key);
@@ -60,16 +58,7 @@ class _LoosingScreenState extends State<LoosingScreen> {
   }
 
   void startAgain(BuildContext context) {
-    Navigator.pushAndRemoveUntil<ChangeNotifierProvider>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ChangeNotifierProvider(
-          create: IntroViewModel.new,
-          child: const IntroView(),
-        ),
-      ),
-      (route) => false,
-    );
+    Navigator.pushReplacementNamed(context, Routes.introScreen);
   }
 }
 
