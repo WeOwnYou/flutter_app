@@ -52,8 +52,8 @@ class AuthViewModel extends ChangeNotifier {
       final navigator = Navigator.of(context);
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         // TODO(fake): change fake data
-        email: '123@123.com', //_emailController.text,
-        password: '123456', //_passwordController.text,
+        email: emailController.text,
+        password: _passwordController.text,
       );
       unawaited(
         navigator.pushReplacementNamed(
@@ -71,7 +71,7 @@ class AuthViewModel extends ChangeNotifier {
     switch (error) {
       case 'The email address is badly formatted.':
         return 'Неправильный формат email';
-      case 'Given String is empty or null.':
+      case 'Given String is empty or null':
         return 'Заполните оба поля';
       case 'The password is invalid or the user does not have a password.':
         return 'Неверные логин или пароль';
