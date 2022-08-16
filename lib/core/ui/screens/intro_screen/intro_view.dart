@@ -92,7 +92,7 @@ class _IntroViewState extends State<IntroView>
                 ),
                 onPressed: () {
                   _controller.forward().then((value) {
-                    startGame(_controller);
+                    startGame();
                   });
                 },
                 child: const Text(
@@ -110,23 +110,18 @@ class _IntroViewState extends State<IntroView>
     );
   }
 
-  Future<void> startGame(AnimationController controller) async {
-    if (FirebaseAuth.instance.currentUser != null) {
-      unawaited(_navigateToHomeScreen());
-    } else {
-      unawaited(_navigateToAuthScreen());
-    }
-  }
-
-  Future<void> _navigateToHomeScreen() async {
-    await Navigator.pushNamed(context, Routes.homeScreen);
+  void startGame() {
+    final isAuth = FirebaseAuth.instance.currentUser != null;
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      isAuth ? Routes.homeScreen : Routes.authScreen,
+      (_) => false,
+    );
   }
 
   Future<void> _navigateToAuthScreen() async {
-    print((await FirebaseAuth.instance.signInWithEmailAndPassword(
+    await FirebaseAuth.instance.signInWithEmailAndPassword(
       email: '123@123.com',
       password: '123456',
-    )).user?.email);
-    await Navigator.pushReplacementNamed(context, Routes.authScreen);
+    );
   }
 }

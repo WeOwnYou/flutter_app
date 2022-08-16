@@ -1,13 +1,13 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_app/core/ui/screens/home_screen/home_view.dart';
-import 'package:flutter_app/core/ui/screens/home_screen/home_view_model.dart';
+import 'package:flutter_app/core/navigation/main_navigation.dart';
 import 'package:flutter_app/firebase_options.dart';
-import 'package:provider/provider.dart';
 
 class AuthViewModel extends ChangeNotifier {
-  final BuildContext _context;
+  final BuildContext context;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   String _errorText = '';
@@ -18,7 +18,7 @@ class AuthViewModel extends ChangeNotifier {
   String get errorText => _errorText;
   bool get isLoading => _isLoading;
 
-  AuthViewModel(this._context) {
+  AuthViewModel(this.context) {
     init();
   }
 
@@ -49,17 +49,22 @@ class AuthViewModel extends ChangeNotifier {
     _errorText = '';
     notifyListeners();
     try {
-      final user =
+      final navigator = Navigator.of(context);
       await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text,
-        password: _passwordController.text,
+        // TODO(fake): change fake data
+        email: '123@123.com', //_emailController.text,
+        password: '123456', //_passwordController.text,
       );
-      _navigateToHomeScreen();
+      unawaited(
+        navigator.pushReplacementNamed(
+          Routes.homeScreen,
+        ),
+      );
     } on FirebaseAuthException catch (e) {
       _errorText = getErrorMessage(e.message);
+      _isLoading = false;
+      notifyListeners();
     }
-    _isLoading = false;
-    notifyListeners();
   }
 
   String getErrorMessage(String? error) {
@@ -77,17 +82,5 @@ class AuthViewModel extends ChangeNotifier {
       default:
         return 'Ошибка';
     }
-  }
-
-  void _navigateToHomeScreen() {
-    Navigator.pushReplacement(
-      _context,
-      MaterialPageRoute<HomeViewModel>(
-        builder: (context) => ChangeNotifierProvider(
-          create: HomeViewModel.new,
-          child: const HomeView(),
-        ),
-      ),
-    );
   }
 }
