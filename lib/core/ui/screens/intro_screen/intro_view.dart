@@ -1,8 +1,8 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app/core/navigation/main_navigation.dart';
-import 'package:flutter_app/firebase_options.dart';
 
 class IntroView extends StatefulWidget {
   const IntroView({Key? key}) : super(key: key);
@@ -91,13 +91,9 @@ class _IntroViewState extends State<IntroView>
                   primary: Colors.white,
                 ),
                 onPressed: () {
-                  if (_controller.status == AnimationStatus.completed) {
-                    _controller.reverse();
-                  } else {
-                    _controller.forward().then((value) {
-                      startGame(_controller);
-                    });
-                  }
+                  _controller.forward().then((value) {
+                    startGame(_controller);
+                  });
                 },
                 child: const Text(
                   'Play',
@@ -115,15 +111,11 @@ class _IntroViewState extends State<IntroView>
   }
 
   Future<void> startGame(AnimationController controller) async {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
     if (FirebaseAuth.instance.currentUser != null) {
-      await _navigateToHomeScreen();
+      unawaited(_navigateToHomeScreen());
     } else {
-      await _navigateToAuthScreen();
+      unawaited(_navigateToAuthScreen());
     }
-    _controller.reset();
   }
 
   Future<void> _navigateToHomeScreen() async {
@@ -131,6 +123,10 @@ class _IntroViewState extends State<IntroView>
   }
 
   Future<void> _navigateToAuthScreen() async {
+    print((await FirebaseAuth.instance.signInWithEmailAndPassword(
+      email: '123@123.com',
+      password: '123456',
+    )).user?.email);
     await Navigator.pushReplacementNamed(context, Routes.authScreen);
   }
 }

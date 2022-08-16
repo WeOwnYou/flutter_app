@@ -38,7 +38,6 @@ class AuthViewModel extends ChangeNotifier {
         password: _passwordController.text,
       );
     } on FirebaseAuthException catch (e) {
-      debugPrint(e.message??'');
       _errorText = getErrorMessage(e.message);
     }
     _isLoading = false;
@@ -50,6 +49,7 @@ class AuthViewModel extends ChangeNotifier {
     _errorText = '';
     notifyListeners();
     try {
+      final user =
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text,
         password: _passwordController.text,
@@ -63,7 +63,6 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   String getErrorMessage(String? error) {
-    debugPrint(error ?? '');
     switch (error) {
       case 'The email address is badly formatted.':
         return 'Неправильный формат email';
@@ -71,9 +70,12 @@ class AuthViewModel extends ChangeNotifier {
         return 'Заполните оба поля';
       case 'The password is invalid or the user does not have a password.':
         return 'Неверные логин или пароль';
-
+      case 'Password should be at least 6 characters':
+        return 'Пароль должен содержать 6 и болле символов';
+      case 'There is no user record corresponding to this identifier. The user may have been deleted.':
+        return 'Неверные логин или пароль';
       default:
-        return error ?? '';
+        return 'Ошибка';
     }
   }
 

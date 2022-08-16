@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app/core/navigation/main_navigation.dart';
-import 'package:flutter_app/core/view_model.dart';
+import 'package:flutter_app/core/ui/view_model.dart';
 import 'package:flutter_app/domain/dio_network/dio_network_client.dart';
 
 @immutable
