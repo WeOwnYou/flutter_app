@@ -1,5 +1,3 @@
-import 'package:dio/dio.dart';
-
 abstract class DataProvider {
   static const apiKey = '';
   static const jsonQuestionsData = <Map<String, dynamic>>[
@@ -80,15 +78,6 @@ abstract class DataProvider {
       'full_answer': 'С низкой орбиты можно увидеть отнюдь не только Великую Китайскую стену. Египетские пирамиды, например, видно ничуть не хуже.',
     },
   ];
-  static Future<Response<dynamic>> getPhoto(int count) async {
-    const clientId = 'c1oJzOrdHEl9fu9IKiO4Ocv_Gihk8Cl3mvgFoJpuXCg';
-
-    final result = Dio().get<dynamic>('https://111api.unsplash.com/photos/random', queryParameters: <String, String>{
-      'client_id': clientId,
-      'count': '$count',
-    },);
-    return result;
-  }
 }
 
 

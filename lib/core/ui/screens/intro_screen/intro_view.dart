@@ -1,6 +1,8 @@
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_app/intro_screen/intro_view_model.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_app/core/navigation/main_navigation.dart';
 
 class IntroView extends StatefulWidget {
   const IntroView({Key? key}) : super(key: key);
@@ -38,25 +40,12 @@ class _IntroViewState extends State<IntroView>
     end: 0,
   ).animate(_controller);
 
+  late final _buttonScale =
+      Tween<double>(begin: 1, end: 0).animate(_controller);
+
   @override
   Widget build(BuildContext context) {
-    final isGameStarted =
-        context.select((IntroViewModel vm) => vm.isGameStarted);
-
     return Scaffold(
-      // backgroundColor: Colors.pinkAccent,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          if (_controller.status == AnimationStatus.completed) {
-            _controller.reverse();
-          } else {
-            _controller.forward().then((value) {
-              Provider.of<IntroViewModel>(context, listen: false).startGame();
-            });
-          }
-        },
-        child: const Icon(Icons.play_arrow_sharp),
-      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -86,13 +75,26 @@ class _IntroViewState extends State<IntroView>
                 ],
               ),
             ),
-            Visibility(
-              visible: isGameStarted ? false : true,
+            AnimatedBuilder(
+              animation: _controller,
+              builder: (ctx, child) {
+                return Opacity(
+                  opacity: _opacity.value,
+                  child: Transform.scale(
+                    scale: _buttonScale.value,
+                    child: child,
+                  ),
+                );
+              },
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   primary: Colors.white,
                 ),
-                onPressed: context.read<IntroViewModel>().onPlayTapped,
+                onPressed: () {
+                  _controller.forward().then((value) {
+                    startGame(_controller);
+                  });
+                },
                 child: const Text(
                   'Play',
                   style: TextStyle(
@@ -101,10 +103,30 @@ class _IntroViewState extends State<IntroView>
                   ),
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> startGame(AnimationController controller) async {
+    if (FirebaseAuth.instance.currentUser != null) {
+      unawaited(_navigateToHomeScreen());
+    } else {
+      unawaited(_navigateToAuthScreen());
+    }
+  }
+
+  Future<void> _navigateToHomeScreen() async {
+    await Navigator.pushNamed(context, Routes.homeScreen);
+  }
+
+  Future<void> _navigateToAuthScreen() async {
+    print((await FirebaseAuth.instance.signInWithEmailAndPassword(
+      email: '123@123.com',
+      password: '123456',
+    )).user?.email);
+    await Navigator.pushReplacementNamed(context, Routes.authScreen);
   }
 }

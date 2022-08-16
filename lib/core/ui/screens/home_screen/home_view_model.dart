@@ -1,9 +1,11 @@
 import 'dart:async';
 
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_app/DataProvider.dart';
-import 'package:flutter_app/core/view_model.dart';
-import 'package:flutter_app/loosing_screen.dart';
+import 'package:flutter_app/core/navigation/main_navigation.dart';
+import 'package:flutter_app/core/ui/view_model.dart';
+import 'package:flutter_app/domain/dio_network/dio_network_client.dart';
 
 @immutable
 class Question {
@@ -107,9 +109,7 @@ abstract class HomeEvent {}
 class InitializeEvent extends HomeEvent {}
 
 class SwitchCardEvent extends HomeEvent {
-  DragUpdateDetails details;
-
-  SwitchCardEvent(this.details);
+  SwitchCardEvent();
 }
 
 class HomeViewModel extends ViewModel {
@@ -132,14 +132,7 @@ class HomeViewModel extends ViewModel {
   double get angle => _angle;
   bool get isDragging => _isDragging;
 
-  HomeViewModel(this._context) : super(_context) {
-    _stream = _streamController.stream
-        .asyncExpand<HomeState>(_mapEventToState)
-        .asyncExpand<HomeState>(_updateState)
-        .asBroadcastStream();
-    _stream.listen((event) { });
-    _streamController.add(InitializeEvent());
-  }
+  HomeViewModel(this._context) : super(_context);
 
   @override
   void dispose() {
@@ -150,6 +143,12 @@ class HomeViewModel extends ViewModel {
   @override
   void onInit() {
     super.onInit();
+    _stream = _streamController.stream
+        .asyncExpand<HomeState>(_mapEventToState)
+        .asyncExpand<HomeState>(_updateState)
+        .asBroadcastStream();
+    _stream.listen((event) {});
+    _streamController.add(InitializeEvent());
   }
 
   Stream<HomeState>? _mapEventToState(HomeEvent event) async* {
@@ -163,6 +162,14 @@ class HomeViewModel extends ViewModel {
           isFailed: _newState.isFailed,
         );
         break;
+      case SwitchCardEvent:
+        await endPosition();
+        yield const HomeState().copyWith(
+          questions: _newState.questions,
+          isLoading: _newState.isLoading,
+          complete: _newState.complete,
+          isFailed: _newState.isFailed,
+        );
     }
   }
 
@@ -174,10 +181,15 @@ class HomeViewModel extends ViewModel {
 
   Future<void> _loadData() async {
     final questionList = <Question>[];
-    const List<dynamic> jsonData = DataProvider.jsonQuestionsData;
+    late final List<dynamic> jsonData;
+    final ref = FirebaseDatabase.instance.ref('quiz_questions');
+    final snapshot = await ref.get();
+    if (snapshot.exists) {
+      jsonData = (snapshot.value as List).sublist(0,1);
+    }
     final photoList = _loadPhotos(jsonData.length);
     for (var i = 0; i < jsonData.length; i++) {
-      final questionData = jsonData[i] as Map<String, dynamic>;
+      final questionData = jsonData[i] as Map<dynamic, dynamic>;
       final question = Question(
         question: questionData['question_text'] as String,
         answer: questionData['question_answer'] as bool,
@@ -191,8 +203,9 @@ class HomeViewModel extends ViewModel {
 
   List<String> _loadPhotos(int length) {
     final photos = <String>[];
+    final getPhoto = DioNetwork().getPhoto;
     safe(() async {
-      final dynamic json = (await DataProvider.getPhoto(length)).data;
+      final dynamic json = (await getPhoto(length)).data;
       final jsonList = json as List<dynamic>;
       for (final jsonMap in jsonList) {
         // ignore: non_constant_identifier_names
@@ -206,7 +219,9 @@ class HomeViewModel extends ViewModel {
     return photos;
   }
 
-  Future<void> _loadPictures() async {}
+  void add(HomeEvent event) {
+    _streamController.add(event);
+  }
 
   void startPosition(DragStartDetails details) {
     _isDragging = true;
@@ -223,32 +238,31 @@ class HomeViewModel extends ViewModel {
       _isGoingTrue = false;
     }
     _angle = 45 * x / _screenSize.width;
-    // if()
     notifyListeners();
   }
 
-  void endPosition() {
+  Future<void> endPosition() async {
     _isDragging = false;
     notifyListeners();
-
     final answer = _getAnswer();
     if (answer == null) {
       _resetPosition();
       return;
     }
-    _swiped(answer);
+    await _swiped(answer);
   }
 
   bool? _getAnswer() {
     final x = _position.dx;
+    final y = _position.dy;
     const delta = 100;
 
-    if (x >= delta) return true;
-    if (x <= -delta) return false;
+    if (x >= delta || y <= -delta) return true;
+    if (x <= -delta || y >= delta) return false;
     return null;
   }
 
-  void _swiped(bool isRight) {
+  Future<void> _swiped(bool isRight) async {
     if (isRight) {
       _angle = 20;
       _position += Offset(_screenSize.width * 2, 0);
@@ -257,14 +271,9 @@ class HomeViewModel extends ViewModel {
       _position -= Offset(_screenSize.width * 2, 0);
     }
     if (isRight == _newState.questions?.last.answer) {
-      _nextCard();
+      await _nextCard();
     } else {
-      Navigator.push<LoosingScreen>(
-        _context,
-        MaterialPageRoute(
-          builder: (_) => const LoosingScreen(),
-        ),
-      );
+      await Navigator.pushReplacementNamed(_context, Routes.loosingScreen);
     }
   }
 
@@ -278,6 +287,7 @@ class HomeViewModel extends ViewModel {
     _newState = HomeState.data(
       [..._initialState.questions!]..removeLast(),
     );
+    notifyListeners();
     _resetPosition();
   }
 
@@ -290,7 +300,12 @@ class HomeViewModel extends ViewModel {
   }
 
   void resetImages() {
-    _loadData();
+    _streamController.add(InitializeEvent());
     notifyListeners();
+  }
+
+  void logOut() {
+    FirebaseAuth.instance.signOut();
+    Navigator.pushReplacementNamed(_context, Routes.introScreen);
   }
 }
