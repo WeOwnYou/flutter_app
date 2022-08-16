@@ -14,7 +14,7 @@ class AuthView extends StatelessWidget {
       body: SingleChildScrollView(
         child: SizedBox(
           height: isLoading
-              ? MediaQuery.of(context).size.height + 100
+              ? MediaQuery.of(context).size.height + 50
               : MediaQuery.of(context).size.height,
           child: Center(
             child: Padding(
