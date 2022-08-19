@@ -52,8 +52,8 @@ class AuthViewModel extends ChangeNotifier {
       final navigator = Navigator.of(context);
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         // TODO(fake): change fake data
-        email: emailController.text,
-        password: _passwordController.text,
+        email: '123@123.com',
+        password: '123456',
       );
       unawaited(
         navigator.pushReplacementNamed(

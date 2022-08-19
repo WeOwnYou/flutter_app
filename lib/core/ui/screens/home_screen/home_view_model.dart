@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_app/DataProvider.dart';
 import 'package:flutter_app/core/navigation/main_navigation.dart';
 import 'package:flutter_app/core/ui/view_model.dart';
 import 'package:flutter_app/domain/dio_network/dio_network_client.dart';
@@ -183,26 +182,15 @@ class HomeViewModel extends ViewModel {
   Future<void> _loadData() async {
     final db = FirebaseFirestore.instance;
     final questionList = <Question>[];
-    final jsonData = <dynamic>[];
-    // final snapshot = await db.collection('/quiz_questions').get();
-    const questions = DataProvider.jsonQuestionsData;
-    // await db.collection('/1/QkklWv3ErB2bDSfxQL4v').;
-    await db.collection('/1').get().then((event) {
-    for (var doc in event.docs) {
-      print("${doc.id} => ${doc.data()}");
-    }
+    var jsonData = <Map<String, dynamic>>[];
+    await db.collection('/quiz_questions').get().then((event) {
+      print(event.docs.length);
+      jsonData =  event.docs.map((entry) => entry.data()).toList();
     });
-
-        // print(snapshot.size);
-    // final ref = FirebaseDatabase.instance.ref('quiz_questions');
-    // final snapshot = await ref.get();
-    // if (snapshot.exists) {
-    //   jsonData = (snapshot.value as List).sublist(0,1);
-    // }
     print('passed');
     final photoList = _loadPhotos(jsonData.length);
     for (var i = 0; i < jsonData.length; i++) {
-      final questionData = jsonData[i] as Map<dynamic, dynamic>;
+      final questionData = jsonData[i];
       final question = Question(
         question: questionData['question_text'] as String,
         answer: questionData['question_answer'] as bool,
