@@ -183,12 +183,20 @@ class HomeViewModel extends ViewModel {
     final db = FirebaseFirestore.instance;
     final questionList = <Question>[];
     var jsonData = <Map<String, dynamic>>[];
-    await db.collection('/quiz_questions').get().then((event) {
-      print(event.docs.length);
-      jsonData =  event.docs.map((entry) => entry.data()).toList();
+    await db
+        .collection('/quiz_questions')
+        .doc('HnPA3a7NcN2ymCvWCOzW')
+        .get()
+        .then((value) {
+      if (value.data() == null) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Wrong path')));
+        return;
+      }
+      jsonData = ((value.data()!['questions'] as Iterable)
+          .map((dynamic e) => e as Map<String, dynamic>)).toList();
     });
-    print('passed');
-    final photoList = _loadPhotos(jsonData.length);
+    final photoList = await _loadPhotos(jsonData.length);
     for (var i = 0; i < jsonData.length; i++) {
       final questionData = jsonData[i];
       final question = Question(
@@ -202,17 +210,17 @@ class HomeViewModel extends ViewModel {
     _newState = HomeState.data(questionList.reversed.toList());
   }
 
-  List<String> _loadPhotos(int length) {
+  Future<List<String>> _loadPhotos(int length) async{
     final photos = <String>[];
     final getPhoto = DioNetwork().getPhoto;
-    safe(() async {
+    await safe(() async {
       final dynamic json = (await getPhoto(length)).data;
       final jsonList = json as List<dynamic>;
       for (final jsonMap in jsonList) {
         // ignore: non_constant_identifier_names
         photos.add(
           ((jsonMap as Map<String, dynamic>)['urls']
-                  as Map<String, dynamic>)['full']
+                  as Map<String, dynamic>)['small']
               .toString(),
         );
       }
