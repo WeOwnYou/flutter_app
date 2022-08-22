@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "267206093118",
+    "firebase_url": "https://flutter-app-c274b-default-rtdb.firebaseio.com",
     "project_id": "flutter-app-c274b",
     "storage_bucket": "flutter-app-c274b.appspot.com"
   },
@@ -29,6 +30,13 @@
             {
               "client_id": "267206093118-agh431pnt9s791c480vi40lovkged2vn.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "267206093118-0oes4i139kfvus4vklrcgkdupk0qpu82.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.flutterApp"
+              }
             }
           ]
         }
