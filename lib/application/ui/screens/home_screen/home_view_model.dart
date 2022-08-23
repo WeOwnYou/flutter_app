@@ -64,7 +64,7 @@ class HomeViewModel extends ViewModel {
   bool get isDragging => _isDragging;
 
   HomeViewModel(this._context, this.errorHandler)
-      : super(errorHandler: errorHandler);
+      : super(_context, errorHandler: errorHandler);
 
   @override
   void dispose() {

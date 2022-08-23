@@ -7,7 +7,7 @@ import 'package:flutter_app/core/ui/handlers/error_handler.dart';
 class ViewModel extends ChangeNotifier {
   final SimpleErrorHandler _errorHandler;
 
-  ViewModel({
+  ViewModel(BuildContext context, {
     required SimpleErrorHandler errorHandler,
   }) : _errorHandler = errorHandler {
     onInit();

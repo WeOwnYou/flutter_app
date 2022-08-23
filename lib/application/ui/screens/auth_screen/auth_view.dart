@@ -10,9 +10,10 @@ class AuthView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isLoading = context.select((AuthViewModel vm) => vm.isLoading);
+    // final isLoading = context.select((AuthViewModel vm) => vm.isLoading);
     final vm = Provider.of<AuthViewModel>(context, listen: false);
-    final errorText = context.select((AuthViewModel vm) => vm.errorText);
+    // final errorText = context.select((AuthViewModel vm) => vm.errorText);
+    final authModel = context.select((AuthViewModel vm) => vm.authModel);
     final decoration = InputDecoration(
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
@@ -59,7 +60,6 @@ class AuthView extends StatelessWidget {
                   // controller: vm.passwordController,
                   decoration: decoration.copyWith(
                     labelText: 'password',
-                    hintText: errorText,
                   ),
                 ),
                 Row(
@@ -67,14 +67,14 @@ class AuthView extends StatelessWidget {
                   children: [
                     ElevatedButton(
                       onPressed:
-                          isLoading ? null : vm.signInWithEmailAndPassword,
+                          authModel.isLoading ? null : vm.signInWithEmailAndPassword,
                       child: const Text('Войти'),
                     ),
                     const SizedBox(
                       width: 8,
                     ),
                     ElevatedButton(
-                      onPressed: isLoading ? null : vm.registerAccount,
+                      onPressed: authModel.isLoading ? null : vm.registerAccount,
                       child: const Text('Регистрация'),
                     ),
                   ],
@@ -83,7 +83,7 @@ class AuthView extends StatelessWidget {
                   'Забыл логин/пароль',
                   style: TextStyle(color: Colors.white),
                 ),
-                if (isLoading)
+                if (authModel.isLoading)
                   const LoadingWidget(
                     isActive: true,
                     size: 50,

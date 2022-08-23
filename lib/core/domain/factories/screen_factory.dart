@@ -11,7 +11,10 @@ import 'package:provider/provider.dart';
 class ScreenFactory {
   Widget makeAuthScreen() {
     return ChangeNotifierProvider(
-      create: AuthViewModel.new,
+      create: (ctx) => AuthViewModel(
+        ctx,
+        SimpleErrorHandler(context: ctx),
+      ),
       child: const AuthView(),
     );
   }
