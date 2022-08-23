@@ -5,11 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app/application/ui/handlers/error_handler.dart';
 
 class ViewModel extends ChangeNotifier {
-  SimpleErrorHandler _errorHandler;
+  final SimpleErrorHandler _errorHandler;
 
   ViewModel({
     required SimpleErrorHandler errorHandler,
-  }) : _errorHandler = errorHandler;
+  }) : _errorHandler = errorHandler {
+    onInit();
+  }
 
   void onInit() {
     debugPrint('Initialize: hash: $hashCode, hasListeners: $hasListeners');
