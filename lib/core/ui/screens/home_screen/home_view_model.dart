@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_app/application/ui/handlers/error_handler.dart';
 import 'package:flutter_app/core/navigation/main_navigation.dart';
 import 'package:flutter_app/core/ui/view_model.dart';
 import 'package:flutter_app/domain/dio_network/dio_network_client.dart';
@@ -113,6 +114,7 @@ class SwitchCardEvent extends HomeEvent {
 }
 
 class HomeViewModel extends ViewModel {
+  SimpleErrorHandler errorHandler;
   final BuildContext _context;
   bool _isDragging = false;
   late Size _screenSize;
@@ -132,7 +134,7 @@ class HomeViewModel extends ViewModel {
   double get angle => _angle;
   bool get isDragging => _isDragging;
 
-  HomeViewModel(this._context) : super(_context);
+  HomeViewModel(this._context, this.errorHandler) : super(errorHandler: errorHandler);
 
   @override
   void dispose() {
@@ -180,37 +182,42 @@ class HomeViewModel extends ViewModel {
   }
 
   Future<void> _loadData() async {
-    final db = FirebaseFirestore.instance;
-    final questionList = <Question>[];
+    var questionList = <Question>[];
     var jsonData = <Map<String, dynamic>>[];
-    await db
+    final snapshot = await FirebaseFirestore.instance
         .collection('/quiz_questions')
         .doc('HnPA3a7NcN2ymCvWCOzW')
-        .get()
-        .then((value) {
-      if (value.data() == null) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Wrong path')));
-        return;
-      }
-      jsonData = ((value.data()!['questions'] as Iterable)
-          .map((dynamic e) => e as Map<String, dynamic>)).toList();
-    });
-    final photoList = await _loadPhotos(jsonData.length);
-    for (var i = 0; i < jsonData.length; i++) {
-      final questionData = jsonData[i];
-      final question = Question(
-        question: questionData['question_text'] as String,
-        answer: questionData['question_answer'] as bool,
-        url: photoList.isNotEmpty ? photoList[i] : null,
-      );
-      questionList.add(question);
+        .get();
+    if (!snapshot.exists || snapshot.data() == null) {
+      handleError('Snapshot doesnt exist');
+    } else {
+      jsonData = ((snapshot.data() as Map<String, dynamic>)['questions']
+              as List<dynamic>)
+          .cast<Map<String, dynamic>>();
+      final photoList = await _loadPhotos(jsonData.length);
+      questionList = jsonData
+          .map(_mapToQuestion)
+          .map(
+            (e) => e.copyWith(
+              url: photoList.isNotEmpty ? photoList.removeLast() : null,
+            ),
+          )
+          .toList()
+        ..shuffle();
     }
-    questionList.shuffle();
     _newState = HomeState.data(questionList.reversed.toList());
   }
 
-  Future<List<String>> _loadPhotos(int length) async{
+  Question _mapToQuestion(
+    Map<String, dynamic> jsonQuestion,
+  ) {
+    return Question(
+      answer: jsonQuestion['question_answer'] as bool,
+      question: jsonQuestion['question_text'] as String,
+    );
+  }
+
+  Future<List<String>> _loadPhotos(int length) async {
     final photos = <String>[];
     final getPhoto = DioNetwork().getPhoto;
     await safe(() async {

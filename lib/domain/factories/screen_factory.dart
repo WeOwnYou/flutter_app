@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/application/ui/handlers/error_handler.dart';
 import 'package:flutter_app/core/ui/screens/auth_screen/auth_view.dart';
 import 'package:flutter_app/core/ui/screens/auth_screen/auth_view_model.dart';
 import 'package:flutter_app/core/ui/screens/home_screen/home_view.dart';
@@ -21,7 +22,10 @@ class ScreenFactory {
 
   Widget makeHomeScreen() {
     return ChangeNotifierProvider(
-      create: HomeViewModel.new,
+      create: (ctx) => HomeViewModel(
+        ctx,
+        SimpleErrorHandler(context: ctx),
+      ),
       child: const HomeView(),
     );
   }

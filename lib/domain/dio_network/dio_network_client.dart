@@ -1,13 +1,21 @@
 import 'package:dio/dio.dart';
 
-class DioNetwork {
-  Future<Response<dynamic>> getPhoto(int count) async {
-    const clientId = 'c1oJzOrdHEl9fu9IKiO4Ocv_Gihk8Cl3mvgFoJpuXCg';
+abstract class ApiConfig {
+  static const clientId = 'c1oJzOrdHEl9fu9IKiO4Ocv_Gihk8Cl3mvgFoJpuXCg';
+}
 
-    final result = Dio().get<dynamic>(
-      'https://api.unsplash.com/photos/random',
+class DioNetwork {
+  final dio = Dio(
+    BaseOptions(
+      baseUrl: 'https://api.unsplash.com',
+    ),
+  );
+  Future<Response<dynamic>> getPhoto(int count) async {
+    // TODO(type): may be not dynamic???
+    final result = dio.get<dynamic>(
+      '/photos/random',
       queryParameters: <String, String>{
-        'client_id': clientId,
+        'client_id': ApiConfig.clientId,
         'count': '$count',
       },);
     return result;

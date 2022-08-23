@@ -1,32 +1,35 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app/core/navigation/main_navigation.dart';
-import 'package:flutter_app/firebase_options.dart';
+
+
+//TODO(модель): подумать как расширить, чтобы не хранить миллиард полей
+class AuthModel {
+  String login;
+  String password;
+
+  AuthModel({
+    this.login = '',
+    this.password = '',
+  });
+
+  @override
+  String toString() {
+    return 'AuthModel{login: $login, password: $password}';
+  }
+}
 
 class AuthViewModel extends ChangeNotifier {
   final BuildContext context;
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final AuthModel _authModel = AuthModel();
   String _errorText = '';
   bool _isLoading = false;
-
-  TextEditingController get emailController => _emailController;
-  TextEditingController get passwordController => _passwordController;
   String get errorText => _errorText;
   bool get isLoading => _isLoading;
 
-  AuthViewModel(this.context) {
-    init();
-  }
-
-  Future<void> init() async {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-  }
+  AuthViewModel(this.context);
 
   Future<void> registerAccount() async {
     _isLoading = true;
@@ -34,11 +37,11 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
     try {
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: _emailController.text,
-        password: _passwordController.text,
+        email: _authModel.login,
+        password: _authModel.password,
       );
     } on FirebaseAuthException catch (e) {
-      _errorText = getErrorMessage(e.message);
+      _errorText = _getErrorMessage(e.message);
     }
     _isLoading = false;
     notifyListeners();
@@ -60,14 +63,20 @@ class AuthViewModel extends ChangeNotifier {
           Routes.homeScreen,
         ),
       );
+      _isLoading = false;
+      notifyListeners();
     } on FirebaseAuthException catch (e) {
-      _errorText = getErrorMessage(e.message);
+      _errorText = _getErrorMessage(e.message);
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  String getErrorMessage(String? error) {
+  void changeAuthData(String input, bool isLogin) {
+    isLogin ? _authModel.login = input : _authModel.password = input;
+  }
+
+  String _getErrorMessage(String? error) {
     switch (error) {
       case 'The email address is badly formatted.':
         return 'Неправильный формат email';

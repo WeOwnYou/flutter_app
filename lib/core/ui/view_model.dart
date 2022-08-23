@@ -2,12 +2,14 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_app/application/ui/handlers/error_handler.dart';
 
 class ViewModel extends ChangeNotifier {
-  BuildContext context;
-  ViewModel(this.context) {
-    onInit();
-  }
+  SimpleErrorHandler _errorHandler;
+
+  ViewModel({
+    required SimpleErrorHandler errorHandler,
+  }) : _errorHandler = errorHandler;
 
   void onInit() {
     debugPrint('Initialize: hash: $hashCode, hasListeners: $hasListeners');
@@ -20,26 +22,20 @@ class ViewModel extends ChangeNotifier {
   }
 
   FutureOr<void> safe(
-      FutureOr<void> Function() call, {void Function()? onError,}) async {
+    FutureOr<void> Function() call, {
+    void Function()? onError,
+  }) async {
     try {
       await call();
     } on Exception catch (e) {
       onError?.call();
       if (e is DioError) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${e.error}')));
+        handleError(e);
       }
     }
   }
-}
 
-// FutureOr<void> safe(
-//     FutureOr<void> Function() call, {
-//       String Function(Object)? onError,
-//     }) async {
-//   try {
-//     await call();
-//   } on Object catch (e) {
-//     final message = onError?.call(e) ?? 'Непредвиденная ошибка!';
-//     handleError(message);
-//   }
-// }
+  void handleError(Object e) {
+    _errorHandler.handleError(e);
+  }
+}
