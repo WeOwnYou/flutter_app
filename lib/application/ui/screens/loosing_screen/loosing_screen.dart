@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_app/core/navigation/main_navigation.dart';
+import 'package:flutter_app/application/ui/navigation/main_navigation.dart';
 
 class LoosingScreen extends StatefulWidget {
   const LoosingScreen({Key? key}) : super(key: key);

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_app/domain/factories/screen_factory.dart';
+import 'package:flutter_app/core/domain/factories/screen_factory.dart';
 
 abstract class Routes {
   static const authScreen = 'auth';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_app/core/ui/screens/auth_screen/auth_view_model.dart';
-import 'package:flutter_app/core/widgets/loading_widget.dart';
+import 'package:flutter_app/application/ui/screens/auth_screen/auth_view_model.dart';
+import 'package:flutter_app/core/ui/widgets/loading_widget.dart';
 import 'package:provider/provider.dart';
 
 // EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom)

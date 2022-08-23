@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_app/application/ui/handlers/error_handler.dart';
+import 'package:flutter_app/core/ui/handlers/error_handler.dart';
 
 class ViewModel extends ChangeNotifier {
   final SimpleErrorHandler _errorHandler;

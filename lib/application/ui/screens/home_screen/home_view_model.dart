@@ -1,12 +1,14 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_app/application/ui/handlers/error_handler.dart';
-import 'package:flutter_app/core/navigation/main_navigation.dart';
-import 'package:flutter_app/core/ui/view_model.dart';
-import 'package:flutter_app/domain/dio_network/dio_network_client.dart';
+import 'package:flutter_app/application/ui/navigation/main_navigation.dart';
+import 'package:flutter_app/application/ui/screens/home_screen/home_events.dart';
+import 'package:flutter_app/application/ui/screens/home_screen/home_state.dart';
+import 'package:flutter_app/core/domain/providers/image_provider.dart';
+import 'package:flutter_app/core/domain/providers/questions_data_provider.dart';
+import 'package:flutter_app/core/ui/handlers/error_handler.dart';
+import 'package:flutter_app/core/ui/view_model/view_model.dart';
 
 @immutable
 class Question {
@@ -40,79 +42,6 @@ class Question {
   }
 }
 
-@immutable
-class HomeState {
-  final List<Question>? questions;
-  final bool isLoading;
-  final bool complete;
-  final bool isFailed;
-
-  const HomeState({
-    this.questions,
-    this.isLoading = false,
-    this.complete = false,
-    this.isFailed = false,
-  });
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is HomeState &&
-          runtimeType == other.runtimeType &&
-          questions == other.questions &&
-          isLoading == other.isLoading &&
-          complete == other.complete &&
-          isFailed == other.isFailed;
-
-  @override
-  int get hashCode =>
-      questions.hashCode ^
-      isLoading.hashCode ^
-      complete.hashCode ^
-      isFailed.hashCode;
-
-  HomeState copyWith({
-    List<Question>? questions,
-    bool? isLoading,
-    bool? complete,
-    bool? isFailed,
-  }) {
-    return HomeState(
-      questions: questions ?? this.questions,
-      isLoading: isLoading ?? this.isLoading,
-      complete: complete ?? this.complete,
-      isFailed: isFailed ?? this.isFailed,
-    );
-  }
-
-  factory HomeState.loading() => const HomeState(
-        questions: [],
-        isLoading: true,
-      );
-
-  factory HomeState.data(List<Question> data) => HomeState(
-        questions: data,
-      );
-
-  factory HomeState.complete() => const HomeState(
-        questions: [],
-        complete: true,
-      );
-
-  factory HomeState.failed() => const HomeState(
-        questions: [],
-        isFailed: true,
-      );
-}
-
-abstract class HomeEvent {}
-
-class InitializeEvent extends HomeEvent {}
-
-class SwitchCardEvent extends HomeEvent {
-  SwitchCardEvent();
-}
-
 class HomeViewModel extends ViewModel {
   SimpleErrorHandler errorHandler;
   final BuildContext _context;
@@ -134,7 +63,8 @@ class HomeViewModel extends ViewModel {
   double get angle => _angle;
   bool get isDragging => _isDragging;
 
-  HomeViewModel(this._context, this.errorHandler) : super(errorHandler: errorHandler);
+  HomeViewModel(this._context, this.errorHandler)
+      : super(errorHandler: errorHandler);
 
   @override
   void dispose() {
@@ -183,28 +113,17 @@ class HomeViewModel extends ViewModel {
 
   Future<void> _loadData() async {
     var questionList = <Question>[];
-    var jsonData = <Map<String, dynamic>>[];
-    final snapshot = await FirebaseFirestore.instance
-        .collection('/quiz_questions')
-        .doc('HnPA3a7NcN2ymCvWCOzW')
-        .get();
-    if (!snapshot.exists || snapshot.data() == null) {
-      handleError('Snapshot doesnt exist');
-    } else {
-      jsonData = ((snapshot.data() as Map<String, dynamic>)['questions']
-              as List<dynamic>)
-          .cast<Map<String, dynamic>>();
-      final photoList = await _loadPhotos(jsonData.length);
-      questionList = jsonData
-          .map(_mapToQuestion)
-          .map(
-            (e) => e.copyWith(
-              url: photoList.isNotEmpty ? photoList.removeLast() : null,
-            ),
-          )
-          .toList()
-        ..shuffle();
-    }
+    final jsonData = await QuestionDataProvider().getJsonData();
+    final photoList = await _loadPhotos(jsonData.length);
+    questionList = jsonData
+        .map(_mapToQuestion)
+        .map(
+          (e) => e.copyWith(
+            url: photoList.isNotEmpty ? photoList.removeLast() : null,
+          ),
+        )
+        .toList()
+      ..shuffle();
     _newState = HomeState.data(questionList.reversed.toList());
   }
 
@@ -219,16 +138,13 @@ class HomeViewModel extends ViewModel {
 
   Future<List<String>> _loadPhotos(int length) async {
     final photos = <String>[];
-    final getPhoto = DioNetwork().getPhoto;
+    final getPhoto = UnsplashImageProvider().getPhoto;
     await safe(() async {
-      final dynamic json = (await getPhoto(length)).data;
-      final jsonList = json as List<dynamic>;
+      final jsonList = (await getPhoto(length))!;
       for (final jsonMap in jsonList) {
         // ignore: non_constant_identifier_names
         photos.add(
-          ((jsonMap as Map<String, dynamic>)['urls']
-                  as Map<String, dynamic>)['small']
-              .toString(),
+          (jsonMap['urls'] as Map<String, dynamic>)['small'].toString(),
         );
       }
     });

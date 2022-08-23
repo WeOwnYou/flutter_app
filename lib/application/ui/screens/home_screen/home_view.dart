@@ -1,7 +1,9 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_app/core/ui/screens/home_screen/home_view_model.dart';
+import 'package:flutter_app/application/ui/screens/home_screen/home_events.dart';
+import 'package:flutter_app/application/ui/screens/home_screen/home_state.dart';
+import 'package:flutter_app/application/ui/screens/home_screen/home_view_model.dart';
 import 'package:provider/provider.dart';
 
 class HomeView extends StatelessWidget {

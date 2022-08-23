@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_app/core/navigation/main_navigation.dart';
+import 'package:flutter_app/application/ui/navigation/main_navigation.dart';
 
 
 //TODO(модель): подумать как расширить, чтобы не хранить миллиард полей
@@ -54,9 +54,8 @@ class AuthViewModel extends ChangeNotifier {
     try {
       final navigator = Navigator.of(context);
       await FirebaseAuth.instance.signInWithEmailAndPassword(
-        // TODO(fake): change fake data
-        email: '123@123.com',
-        password: '123456',
+        email: _authModel.login,
+        password: _authModel.password,
       );
       unawaited(
         navigator.pushReplacementNamed(
