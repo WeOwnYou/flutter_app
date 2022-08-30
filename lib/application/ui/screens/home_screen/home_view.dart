@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app/application/ui/screens/home_screen/home_events.dart';
 import 'package:flutter_app/application/ui/screens/home_screen/home_state.dart';
 import 'package:flutter_app/application/ui/screens/home_screen/home_view_model.dart';
+import 'package:flutter_app/core/ui/widgets/overlay_entry_widget.dart';
 import 'package:provider/provider.dart';
 
 class HomeView extends StatelessWidget {
@@ -12,6 +13,13 @@ class HomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final onLogOutPressed = context.read<HomeViewModel>().logOut;
+    final overlayMessage =
+        context.select((HomeViewModel vm) => vm.overlayMessage);
+    if (overlayMessage != '') {
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+        _showOverlay(context, text: overlayMessage);
+      });
+    }
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -101,69 +109,32 @@ class HomeView extends StatelessWidget {
   }
 
   Widget buildCard(Question question, BuildContext context, bool isFront) {
-    Widget? upperText;
     final isGoingTrue = context.select((HomeViewModel vm) => vm.isGoingTrue);
-    if ((isGoingTrue ?? false) && isFront) {
-      upperText = const Align(
-        alignment: Alignment.topLeft,
-        child: Padding(
-          padding: EdgeInsets.only(left: 50.0, top: 25),
-          child: RotationTransition(
-            turns: AlwaysStoppedAnimation(-20 / 360),
-            child: Text(
-              'True',
-              style: TextStyle(
-                color: Colors.green,
-                fontSize: 35,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-    if (isGoingTrue == false && isFront) {
-      upperText = const Align(
-        alignment: Alignment.topRight,
-        child: Padding(
-          padding: EdgeInsets.only(right: 50, top: 25),
-          child: RotationTransition(
-            turns: AlwaysStoppedAnimation(20 / 360),
-            child: Text(
-              'False',
-              style: TextStyle(
-                color: Colors.red,
-                fontSize: 35,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(30),
-        child: Container(
-          decoration: question.url == null
-              ? const BoxDecoration(
-                  color: Colors.blueGrey,
-                )
-              : BoxDecoration(
-                  color: Colors.blueGrey,
-                  image: DecorationImage(
-                    fit: BoxFit.fill,
-                    image: NetworkImage(
-                      question.url!,
+    final upperText = upperTextWidget(isGoingTrue, isFront);
+
+    return Stack(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(30),
+            child: Container(
+              decoration: question.url == null
+                  ? const BoxDecoration(
+                      color: Colors.blueGrey,
+                    )
+                  : BoxDecoration(
+                      color: Colors.blueGrey,
+                      image: DecorationImage(
+                        fit: BoxFit.fill,
+                        image: NetworkImage(
+                          question.url!,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-          child: Column(
-            children: [
-              upperText ?? const SizedBox.shrink(),
-              Expanded(
-                child: Center(
+              child: Center(
+                child: ColoredBox(
+                  color: Colors.white,
                   child: Text(
                     question.question,
                     style: const TextStyle(
@@ -173,13 +144,72 @@ class HomeView extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                 ),
-              )
-            ],
+              ),
+            ),
+          ),
+        ),
+        upperText ?? const SizedBox.shrink(),
+      ],
+    );
+  }
+}
+
+Future<void> _showOverlay(BuildContext context, {required String text}) async {
+  final overlayState = Overlay.of(context);
+  const secondsDuration = 2;
+  final overlayEntry = OverlayEntry(
+    builder: (context) {
+      return BuildOverlayEntryWidget(
+        text: text,
+        secondsDuration: secondsDuration,
+      );
+    },
+  );
+  overlayState!.insert(overlayEntry);
+  await Future<void>.delayed(const Duration(seconds: secondsDuration))
+      .whenComplete(overlayEntry.remove);
+}
+
+Widget? upperTextWidget(bool? isGoingTrue, bool isFront) {
+  if ((isGoingTrue ?? false) && isFront) {
+    return const Align(
+      alignment: Alignment.topLeft,
+      child: Padding(
+        padding: EdgeInsets.only(left: 50.0, top: 25),
+        child: RotationTransition(
+          turns: AlwaysStoppedAnimation(-20 / 360),
+          child: Text(
+            'True',
+            style: TextStyle(
+              color: Colors.green,
+              fontSize: 35,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ),
     );
   }
+  if (isGoingTrue == false && isFront) {
+    return const Align(
+      alignment: Alignment.topRight,
+      child: Padding(
+        padding: EdgeInsets.only(right: 50, top: 25),
+        child: RotationTransition(
+          turns: AlwaysStoppedAnimation(20 / 360),
+          child: Text(
+            'False',
+            style: TextStyle(
+              color: Colors.red,
+              fontSize: 35,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+  return null;
 }
 
 class _BuildRestartButton extends StatelessWidget {

@@ -11,11 +11,13 @@ class AuthModel {
   final String login;
   final String password;
   final bool isLoading;
+  final String errorText;
 
   const AuthModel({
     this.login = '',
     this.password = '',
     this.isLoading = false,
+    this.errorText = '',
   });
 
   @override
@@ -38,11 +40,13 @@ class AuthModel {
     String? login,
     String? password,
     bool? isLoading,
+    String? errorText,
   }) {
     return AuthModel(
       login: login ?? this.login,
       password: password ?? this.password,
       isLoading: isLoading ?? this.isLoading,
+      errorText: errorText ?? this.errorText,
     );
   }
 }
@@ -66,8 +70,11 @@ class AuthViewModel extends ViewModel {
         email: _authModel.login,
         password: _authModel.password,
       );
+      _authModel = _authModel.copyWith(errorText: '');
     } on FirebaseAuthException catch (e) {
-      handleError(e);
+      _authModel = _authModel.copyWith(
+        errorText: _getFirebaseAuthErrorMessage(e.message),
+      );
     }
     _authModel = _authModel.copyWith(isLoading: false);
     notifyListeners();
@@ -89,14 +96,30 @@ class AuthViewModel extends ViewModel {
           Routes.homeScreen,
         ),
       );
-      _authModel = _authModel.copyWith(isLoading: false);
-      notifyListeners();
+      _authModel = _authModel.copyWith(errorText: '');
     } on FirebaseAuthException catch (e) {
-      handleError(e);
       _authModel = _authModel.copyWith(
-        isLoading: false,
+        errorText: _getFirebaseAuthErrorMessage(e.message),
       );
-      notifyListeners();
+    }
+    _authModel = _authModel.copyWith(isLoading: false);
+    notifyListeners();
+  }
+
+  String _getFirebaseAuthErrorMessage(String? error) {
+    switch (error) {
+      case 'The email address is badly formatted.':
+        return 'Неправильный формат email';
+      case 'Given String is empty or null':
+        return 'Заполните оба поля';
+      case 'The password is invalid or the user does not have a password.':
+        return 'Неверные логин или пароль';
+      case 'Password should be at least 6 characters':
+        return 'Пароль должен содержать 6 и болле символов';
+      case 'There is no user record corresponding to this identifier. The user may have been deleted.':
+        return 'Неверные логин или пароль';
+      default:
+        return 'Ошибка';
     }
   }
 

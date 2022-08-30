@@ -6,7 +6,7 @@ import 'package:flutter_app/application/ui/navigation/main_navigation.dart';
 import 'package:flutter_app/application/ui/screens/home_screen/home_events.dart';
 import 'package:flutter_app/application/ui/screens/home_screen/home_state.dart';
 import 'package:flutter_app/core/domain/providers/image_provider.dart';
-import 'package:flutter_app/core/domain/providers/questions_data_provider.dart';
+import 'package:flutter_app/core/service/firebase_data_service.dart';
 import 'package:flutter_app/core/ui/handlers/error_handler.dart';
 import 'package:flutter_app/core/ui/view_model/view_model.dart';
 
@@ -44,12 +44,13 @@ class Question {
 
 class HomeViewModel extends ViewModel {
   SimpleErrorHandler errorHandler;
-  final BuildContext _context;
+  final BuildContext context;
   bool _isDragging = false;
   late Size _screenSize;
   double _angle = 0;
   Offset _position = Offset.zero;
   bool? _isGoingTrue;
+  String _overlayMessage = '';
   HomeState _initialState = HomeState.data(const <Question>[]);
   HomeState _newState = HomeState.data(const []);
   late final Stream<HomeState> _stream;
@@ -62,9 +63,10 @@ class HomeViewModel extends ViewModel {
   Offset get position => _position;
   double get angle => _angle;
   bool get isDragging => _isDragging;
+  String get overlayMessage => _overlayMessage;
 
-  HomeViewModel(this._context, this.errorHandler)
-      : super(_context, errorHandler: errorHandler);
+  HomeViewModel(this.context, this.errorHandler)
+      : super(context, errorHandler: errorHandler);
 
   @override
   void dispose() {
@@ -112,40 +114,35 @@ class HomeViewModel extends ViewModel {
   }
 
   Future<void> _loadData() async {
-    var questionList = <Question>[];
-    final jsonData = await QuestionDataProvider().getJsonData();
-    final photoList = await _loadPhotos(jsonData.length);
-    questionList = jsonData
-        .map(_mapToQuestion)
+    var questionWithUrlsList = <Question>[];
+    var questionData = <Question>[];
+    try {
+      questionData = await FirebaseDataService().getQuestionsList();
+    } on FirebaseException catch (e) {
+      // handleError(e);
+      _overlayMessage = e.message??'';
+      notifyListeners();
+    }
+    final photoList = await _loadPhotos(questionData.length);
+    questionWithUrlsList = questionData
         .map(
-          (e) => e.copyWith(
+          (question) => question.copyWith(
             url: photoList.isNotEmpty ? photoList.removeLast() : null,
           ),
         )
         .toList()
       ..shuffle();
-    _newState = HomeState.data(questionList.reversed.toList());
-  }
-
-  Question _mapToQuestion(
-    Map<String, dynamic> jsonQuestion,
-  ) {
-    return Question(
-      answer: jsonQuestion['question_answer'] as bool,
-      question: jsonQuestion['question_text'] as String,
-    );
+    _newState = HomeState.data(questionWithUrlsList.reversed.toList());
   }
 
   Future<List<String>> _loadPhotos(int length) async {
     final photos = <String>[];
     final getPhoto = UnsplashImageProvider().getPhoto;
     await safe(() async {
-      final jsonList = (await getPhoto(length))!;
-      for (final jsonMap in jsonList) {
+      final jsonList = await getPhoto(length);
+      for (final unsplashPhoto in jsonList) {
         // ignore: non_constant_identifier_names
-        photos.add(
-          (jsonMap['urls'] as Map<String, dynamic>)['small'].toString(),
-        );
+        photos.add(unsplashPhoto.urls!.small!);
       }
     });
     return photos;
@@ -161,7 +158,7 @@ class HomeViewModel extends ViewModel {
   }
 
   void updatePosition(DragUpdateDetails details) {
-    _screenSize = MediaQuery.of(_context).size;
+    _screenSize = MediaQuery.of(context).size;
     _position += details.delta;
     final x = _position.dx;
     if (x > 0) {
@@ -205,7 +202,7 @@ class HomeViewModel extends ViewModel {
     if (isRight == _newState.questions?.last.answer) {
       await _nextCard();
     } else {
-      await Navigator.pushReplacementNamed(_context, Routes.loosingScreen);
+      await Navigator.pushReplacementNamed(context, Routes.loosingScreen);
     }
   }
 
@@ -236,8 +233,9 @@ class HomeViewModel extends ViewModel {
     notifyListeners();
   }
 
-  void logOut() {
-    FirebaseAuth.instance.signOut();
-    Navigator.pushReplacementNamed(_context, Routes.introScreen);
+  Future<void> logOut() async {
+    final navigator = Navigator.of(context);
+    await FirebaseAuth.instance.signOut();
+    unawaited(navigator.pushReplacementNamed(Routes.introScreen));
   }
 }

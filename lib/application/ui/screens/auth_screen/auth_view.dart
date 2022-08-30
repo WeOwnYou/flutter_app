@@ -10,9 +10,7 @@ class AuthView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // final isLoading = context.select((AuthViewModel vm) => vm.isLoading);
     final vm = Provider.of<AuthViewModel>(context, listen: false);
-    // final errorText = context.select((AuthViewModel vm) => vm.errorText);
     final authModel = context.select((AuthViewModel vm) => vm.authModel);
     final decoration = InputDecoration(
       focusedBorder: OutlineInputBorder(
@@ -48,8 +46,9 @@ class AuthView extends StatelessWidget {
                 ),
                 TextField(
                   onChanged: (input) => vm.changeAuthData(input, true),
-                  // controller: vm.emailController,
-                  decoration: decoration.copyWith(labelText: 'email'),
+                  decoration: decoration.copyWith(
+                    labelText: 'email',
+                  ),
                 ),
                 const SizedBox(
                   height: 40,
@@ -57,24 +56,27 @@ class AuthView extends StatelessWidget {
                 TextField(
                   onChanged: (input) => vm.changeAuthData(input, false),
                   obscureText: true,
-                  // controller: vm.passwordController,
                   decoration: decoration.copyWith(
                     labelText: 'password',
+                    helperText: authModel.errorText,
+                    helperStyle: const TextStyle(color: Colors.white),
                   ),
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     ElevatedButton(
-                      onPressed:
-                          authModel.isLoading ? null : vm.signInWithEmailAndPassword,
+                      onPressed: authModel.isLoading
+                          ? null
+                          : vm.signInWithEmailAndPassword,
                       child: const Text('Войти'),
                     ),
                     const SizedBox(
                       width: 8,
                     ),
                     ElevatedButton(
-                      onPressed: authModel.isLoading ? null : vm.registerAccount,
+                      onPressed:
+                          authModel.isLoading ? null : vm.registerAccount,
                       child: const Text('Регистрация'),
                     ),
                   ],
@@ -89,7 +91,6 @@ class AuthView extends StatelessWidget {
                     size: 50,
                     color: Colors.white,
                   ),
-                // SizedBox(height: MediaQuery.of(context).viewInsets.bottom,)
               ],
             ),
           ),
