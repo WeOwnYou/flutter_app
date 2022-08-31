@@ -3,14 +3,13 @@ class DatabaseQuestions {
 
   DatabaseQuestions({this.questions});
 
-  DatabaseQuestions.fromJson(Map<String, dynamic> json) {
-    if (json['questions'] != null) {
-      questions = <DatabaseQuestion>[];
-      for (final v in json['questions'] as List<dynamic>) {
-        questions!.add(DatabaseQuestion.fromJson(v as Map<String, dynamic>));
-      }
-    }
-  }
+  factory DatabaseQuestions.fromJson(Map<String, dynamic> json) =>
+      DatabaseQuestions(
+        questions: (json['questions'] as List<dynamic>)
+            .cast<Map<String, dynamic>>()
+            .map<DatabaseQuestion>(DatabaseQuestion.fromJson)
+            .toList(),
+      );
 
   Map<String, dynamic> toJson() {
     final data = <String, dynamic>{};
@@ -28,11 +27,12 @@ class DatabaseQuestion {
 
   DatabaseQuestion({this.questionText, this.fullAnswer, this.questionAnswer});
 
-  DatabaseQuestion.fromJson(Map<String, dynamic> json) {
-    questionText = json['question_text'] as String;
-    fullAnswer = json['full_answer'] as String;
-    questionAnswer = json['question_answer'] as bool;
-  }
+  factory DatabaseQuestion.fromJson(Map<String, dynamic> json) =>
+      DatabaseQuestion(
+        questionText: json['question_text'] as String,
+        fullAnswer: json['full_answer'] as String,
+        questionAnswer: json['question_answer'] as bool,
+      );
 
   Map<String, dynamic> toJson() {
     final data = <String, dynamic>{};

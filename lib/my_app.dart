@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/application/ui/navigation/main_navigation.dart';
-import 'package:flutter_app/core/domain/providers/theme_provider.dart';
+import 'package:flutter_app/core/ui/res/app_themes.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -10,8 +10,8 @@ class MyApp extends StatelessWidget {
     final mainNavigation = MainNavigation();
     return MaterialApp(
       themeMode: ThemeMode.light,
-      theme: ThemeProvider.lightTheme,
-      darkTheme: ThemeProvider.darkTheme,
+      theme: AppThemes.lightTheme,
+      darkTheme: AppThemes.darkTheme,
       initialRoute: Routes.introScreen,
       onGenerateRoute: mainNavigation.onGenerateRoute,
     );

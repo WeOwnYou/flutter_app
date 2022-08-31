@@ -1,18 +1,18 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_app/configuration/api_config.dart';
+import 'package:flutter_app/core/domain/api_client/api_client_config.dart';
 import 'package:flutter_app/core/domain/entity/unsplash_photo.dart';
 
-class UnsplashImageProvider {
-  final dio = Dio(
+class UnsplashApiClient {
+  final _dio = Dio(
     BaseOptions(
       baseUrl: 'https://api.unsplash.com',
     ),
   );
-  Future<List<UnsplashPhoto>> getPhoto(int count) async {
-    final response = dio.get<List<dynamic>>(
+  Future<List<UnsplashPhoto>> getPhotos(int count) async {
+    final response = _dio.get<List<dynamic>>(
       '/photos/random',
       queryParameters: <String, String>{
-        'client_id': ApiConfig.clientId,
+        'client_id': ApiClientConfig.clientId,
         'count': '$count',
       },);
     final photosList = (await response).data!.cast<Map<String, dynamic>>();

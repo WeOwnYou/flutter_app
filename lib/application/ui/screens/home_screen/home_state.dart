@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_app/application/ui/screens/home_screen/home_view_model.dart';
 
 @immutable
 class HomeState {
@@ -64,4 +63,36 @@ class HomeState {
         questions: [],
         isFailed: true,
       );
+}
+
+@immutable
+class Question {
+  final String question;
+  final bool answer;
+  final String? url;
+  const Question({required this.answer, required this.question, this.url});
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+          other is Question &&
+              runtimeType == other.runtimeType &&
+              question == other.question &&
+              answer == other.answer &&
+              url == other.url;
+
+  @override
+  int get hashCode => question.hashCode ^ answer.hashCode ^ url.hashCode;
+
+  Question copyWith({
+    String? question,
+    bool? answer,
+    String? url,
+  }) {
+    return Question(
+      question: question ?? this.question,
+      answer: answer ?? this.answer,
+      url: url ?? this.url,
+    );
+  }
 }

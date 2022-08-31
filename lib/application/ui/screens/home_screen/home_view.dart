@@ -4,22 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app/application/ui/screens/home_screen/home_events.dart';
 import 'package:flutter_app/application/ui/screens/home_screen/home_state.dart';
 import 'package:flutter_app/application/ui/screens/home_screen/home_view_model.dart';
-import 'package:flutter_app/core/ui/widgets/overlay_entry_widget.dart';
 import 'package:provider/provider.dart';
 
 class HomeView extends StatelessWidget {
-  const HomeView({Key? key}) : super(key: key);
+  const HomeView({super.key});
 
   @override
   Widget build(BuildContext context) {
     final onLogOutPressed = context.read<HomeViewModel>().logOut;
-    final overlayMessage =
-        context.select((HomeViewModel vm) => vm.overlayMessage);
-    if (overlayMessage != '') {
-      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-        _showOverlay(context, text: overlayMessage);
-      });
-    }
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -109,7 +101,8 @@ class HomeView extends StatelessWidget {
   }
 
   Widget buildCard(Question question, BuildContext context, bool isFront) {
-    final isGoingTrue = context.select((HomeViewModel vm) => vm.isGoingTrue);
+    final isGoingTrue =
+        context.select<HomeViewModel, bool?>((vm) => vm.isGoingTrue);
     final upperText = upperTextWidget(isGoingTrue, isFront);
 
     return Stack(
@@ -152,22 +145,6 @@ class HomeView extends StatelessWidget {
       ],
     );
   }
-}
-
-Future<void> _showOverlay(BuildContext context, {required String text}) async {
-  final overlayState = Overlay.of(context);
-  const secondsDuration = 2;
-  final overlayEntry = OverlayEntry(
-    builder: (context) {
-      return BuildOverlayEntryWidget(
-        text: text,
-        secondsDuration: secondsDuration,
-      );
-    },
-  );
-  overlayState!.insert(overlayEntry);
-  await Future<void>.delayed(const Duration(seconds: secondsDuration))
-      .whenComplete(overlayEntry.remove);
 }
 
 Widget? upperTextWidget(bool? isGoingTrue, bool isFront) {
@@ -222,7 +199,8 @@ class _BuildRestartButton extends StatelessWidget {
     return Scaffold(
       body: Center(
         child: ElevatedButton(
-          onPressed: context.read<HomeViewModel>().resetImages,
+          onPressed: () => Provider.of<HomeViewModel>(context, listen: false)
+              .add(InitializeEvent()),
           child: const Text('Reset'),
         ),
       ),

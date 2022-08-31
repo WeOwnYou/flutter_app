@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app/application/ui/navigation/main_navigation.dart';
-import 'package:flutter_app/core/ui/handlers/error_handler.dart';
+import 'package:flutter_app/core/ui/handlers/snack_bar_handler.dart';
 import 'package:flutter_app/core/ui/view_model/view_model.dart';
 
 @immutable
@@ -53,12 +53,12 @@ class AuthModel {
 
 class AuthViewModel extends ViewModel {
   final BuildContext context;
-  final SimpleErrorHandler errorHandler;
+  final SnackBarErrorHandler errorHandler;
   AuthModel _authModel = const AuthModel();
   AuthModel get authModel => _authModel;
 
   AuthViewModel(this.context, this.errorHandler)
-      : super(context, errorHandler: errorHandler);
+      : super(errorHandler: errorHandler);
 
   Future<void> registerAccount() async {
     _authModel = _authModel.copyWith(

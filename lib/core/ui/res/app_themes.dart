@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_app/core/ui/res/res.dart';
 
-abstract class ThemeProvider {
+abstract class AppThemes{
   static ThemeData lightTheme = ThemeData(
     unselectedWidgetColor: AppColors.importantLight,
     appBarTheme: const AppBarTheme(
@@ -28,14 +29,4 @@ abstract class ThemeProvider {
     ),
     scaffoldBackgroundColor: Colors.black,
   );
-}
-
-abstract class AppColors {
-  /// Общие  Colors
-
-  /// Light colors
-  static const importantLight = Colors.deepOrange;
-
-  /// Dark Colors
-  static const importantDark = Colors.red;
 }

@@ -5,74 +5,37 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app/application/ui/navigation/main_navigation.dart';
 import 'package:flutter_app/application/ui/screens/home_screen/home_events.dart';
 import 'package:flutter_app/application/ui/screens/home_screen/home_state.dart';
-import 'package:flutter_app/core/domain/providers/image_provider.dart';
-import 'package:flutter_app/core/service/firebase_data_service.dart';
+import 'package:flutter_app/core/domain/api_client/unsplash_api_client.dart';
+import 'package:flutter_app/core/service/questions_service.dart';
 import 'package:flutter_app/core/ui/handlers/error_handler.dart';
 import 'package:flutter_app/core/ui/view_model/view_model.dart';
 
-@immutable
-class Question {
-  final String question;
-  final bool answer;
-  final String? url;
-  const Question({required this.answer, required this.question, this.url});
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Question &&
-          runtimeType == other.runtimeType &&
-          question == other.question &&
-          answer == other.answer &&
-          url == other.url;
-
-  @override
-  int get hashCode => question.hashCode ^ answer.hashCode ^ url.hashCode;
-
-  Question copyWith({
-    String? question,
-    bool? answer,
-    String? url,
-  }) {
-    return Question(
-      question: question ?? this.question,
-      answer: answer ?? this.answer,
-      url: url ?? this.url,
-    );
-  }
-}
-
 class HomeViewModel extends ViewModel {
-  SimpleErrorHandler errorHandler;
   final BuildContext context;
+  /// animation
   bool _isDragging = false;
   late Size _screenSize;
   double _angle = 0;
   Offset _position = Offset.zero;
   bool? _isGoingTrue;
-  String _overlayMessage = '';
+  /// endAnimation
   HomeState _initialState = HomeState.data(const <Question>[]);
   HomeState _newState = HomeState.data(const []);
   late final Stream<HomeState> _stream;
   final StreamController<HomeEvent> _streamController =
       StreamController<HomeEvent>.broadcast();
 
-  HomeState get initialState => _initialState;
-  Stream<HomeState> get stream => _stream;
+  /// animation getter
   bool? get isGoingTrue => _isGoingTrue;
   Offset get position => _position;
   double get angle => _angle;
   bool get isDragging => _isDragging;
-  String get overlayMessage => _overlayMessage;
+  /// endAnimationGetter
+  HomeState get initialState => _initialState;
+  Stream<HomeState> get stream => _stream;
 
-  HomeViewModel(this.context, this.errorHandler)
-      : super(context, errorHandler: errorHandler);
-
-  @override
-  void dispose() {
-    super.dispose();
-    _streamController.close();
-  }
+  HomeViewModel(this.context, ErrorHandler errorHandler)
+      : super(errorHandler: errorHandler);
 
   @override
   void onInit() {
@@ -83,6 +46,12 @@ class HomeViewModel extends ViewModel {
         .asBroadcastStream();
     _stream.listen((event) {});
     _streamController.add(InitializeEvent());
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _streamController.close();
   }
 
   Stream<HomeState>? _mapEventToState(HomeEvent event) async* {
@@ -114,38 +83,18 @@ class HomeViewModel extends ViewModel {
   }
 
   Future<void> _loadData() async {
-    var questionWithUrlsList = <Question>[];
     var questionData = <Question>[];
+    safe(() async {
+    }, onError: () {
+      // TODO(USEFUL): THINK ABOUT IT!!!!
+    },);
     try {
-      questionData = await FirebaseDataService().getQuestionsList();
+      questionData = await QuestionsService().getQuestionsList();
     } on FirebaseException catch (e) {
-      // handleError(e);
-      _overlayMessage = e.message??'';
+      handleError(e);
       notifyListeners();
     }
-    final photoList = await _loadPhotos(questionData.length);
-    questionWithUrlsList = questionData
-        .map(
-          (question) => question.copyWith(
-            url: photoList.isNotEmpty ? photoList.removeLast() : null,
-          ),
-        )
-        .toList()
-      ..shuffle();
-    _newState = HomeState.data(questionWithUrlsList.reversed.toList());
-  }
-
-  Future<List<String>> _loadPhotos(int length) async {
-    final photos = <String>[];
-    final getPhoto = UnsplashImageProvider().getPhoto;
-    await safe(() async {
-      final jsonList = await getPhoto(length);
-      for (final unsplashPhoto in jsonList) {
-        // ignore: non_constant_identifier_names
-        photos.add(unsplashPhoto.urls!.small!);
-      }
-    });
-    return photos;
+    _newState = HomeState.data(questionData.reversed.toList());
   }
 
   void add(HomeEvent event) {
@@ -228,10 +177,10 @@ class HomeViewModel extends ViewModel {
     notifyListeners();
   }
 
-  void resetImages() {
-    _streamController.add(InitializeEvent());
-    notifyListeners();
-  }
+  // void resetImages() {
+  //   _streamController.add(InitializeEvent());
+  //   notifyListeners();
+  // }
 
   Future<void> logOut() async {
     final navigator = Navigator.of(context);
