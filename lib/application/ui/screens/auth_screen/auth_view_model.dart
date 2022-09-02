@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:auto_route/auto_route.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app/application/ui/navigation/main_navigation.dart';
@@ -86,16 +87,11 @@ class AuthViewModel extends ViewModel {
     );
     notifyListeners();
     try {
-      final navigator = Navigator.of(context);
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _authModel.login,
         password: _authModel.password,
       );
-      unawaited(
-        navigator.pushReplacementNamed(
-          Routes.homeScreen,
-        ),
-      );
+      unawaited(context.router.replaceNamed(Routes.mainScreen));
       _authModel = _authModel.copyWith(errorText: '');
     } on FirebaseAuthException catch (e) {
       _authModel = _authModel.copyWith(
@@ -118,6 +114,8 @@ class AuthViewModel extends ViewModel {
         return 'Пароль должен содержать 6 и болле символов';
       case 'There is no user record corresponding to this identifier. The user may have been deleted.':
         return 'Неверные логин или пароль';
+      case 'A network error (such as timeout, interrupted connection or unreachable host) has occurred.':
+        return 'Ошибка сети';
       default:
         return 'Ошибка';
     }

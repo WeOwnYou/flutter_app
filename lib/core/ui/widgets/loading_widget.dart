@@ -7,11 +7,11 @@ class LoadingWidget extends StatefulWidget {
   final double size;
   final Color color;
   const LoadingWidget({
-    required this.isActive,
-    Key? key,
+    this.isActive = true,
+    super.key,
     required this.size,
     required this.color,
-  }) : super(key: key);
+  });
 
   @override
   State<LoadingWidget> createState() => _LoadingWidgetState();
@@ -49,6 +49,7 @@ class _LoadingWidgetState extends State<LoadingWidget>
       ),
     );
   }
+
   @override
   void dispose() {
     _controller.dispose();

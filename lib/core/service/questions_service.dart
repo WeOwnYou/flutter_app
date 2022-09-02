@@ -22,7 +22,7 @@ class QuestionsService {
         (e) => Question(
             answer: e.questionAnswer!,
             question: e.questionText!,
-            url: photoList.removeLast().urls?.small),
+            url: photoList.isNotEmpty ? photoList.removeLast().urls?.small : null,),
       ),
     )..shuffle();
     return questionsList;

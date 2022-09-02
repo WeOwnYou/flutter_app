@@ -1,17 +1,18 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app/application/ui/screens/auth_screen/auth_view_model.dart';
+import 'package:flutter_app/core/ui/handlers/snack_bar_handler.dart';
 import 'package:flutter_app/core/ui/widgets/loading_widget.dart';
 import 'package:provider/provider.dart';
 
-// EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom)
-
-class AuthView extends StatelessWidget {
+class AuthView extends StatelessWidget implements AutoRouteWrapper {
   const AuthView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final vm = Provider.of<AuthViewModel>(context, listen: false);
-    final authModel = context.select((AuthViewModel vm) => vm.authModel);
+    final authModel =
+        context.select<AuthViewModel, AuthModel>((vm) => vm.authModel);
     final decoration = InputDecoration(
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
@@ -87,7 +88,6 @@ class AuthView extends StatelessWidget {
                 ),
                 if (authModel.isLoading)
                   const LoadingWidget(
-                    isActive: true,
                     size: 50,
                     color: Colors.white,
                   ),
@@ -96,6 +96,17 @@ class AuthView extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  @override
+  Widget wrappedRoute(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (ctx) => AuthViewModel(
+        ctx,
+        SnackBarErrorHandler(ctx),
+      ),
+      child: const AuthView(),
     );
   }
 }

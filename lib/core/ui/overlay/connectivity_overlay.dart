@@ -8,6 +8,7 @@ class ConnectivityOverlay {
   static final instance = ConnectivityOverlay._();
 
   void showOverlay(BuildContext context, String text) {
+    // print('opening ${overlayEntry?.mounted}');
     if (overlayEntry != null && overlayEntry!.mounted) return;
     overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
@@ -35,12 +36,12 @@ class ConnectivityOverlay {
         ),
       ),
     );
-    if (!overlayEntry!.mounted) {
-      Overlay.of(context)?.insert(overlayEntry!);
-    }
+    // print(overlayEntry);
+    Overlay.of(context)?.insert(overlayEntry!);
   }
 
   void removeOverlay() {
+    // print('closing ${overlayEntry}');
     if (overlayEntry != null && overlayEntry!.mounted) {
       overlayEntry?.remove();
     }

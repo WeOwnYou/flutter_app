@@ -15,7 +15,12 @@ class UnsplashApiClient {
         'client_id': ApiClientConfig.clientId,
         'count': '$count',
       },);
-    final photosList = (await response).data!.cast<Map<String, dynamic>>();
+    var photosList = <Map<String, dynamic>>[];
+    try {
+      photosList = (await response).data!.cast<Map<String, dynamic>>();
+    }on DioError {
+      photosList = [];
+    }
     final result = photosList.map(UnsplashPhoto.fromJson).toList();
     return result;
   }

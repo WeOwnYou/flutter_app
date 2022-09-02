@@ -1,35 +1,40 @@
 import 'dart:async';
 
+import 'package:auto_route/auto_route.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app/application/ui/navigation/main_navigation.dart';
 import 'package:flutter_app/application/ui/screens/home_screen/home_events.dart';
 import 'package:flutter_app/application/ui/screens/home_screen/home_state.dart';
-import 'package:flutter_app/core/domain/api_client/unsplash_api_client.dart';
 import 'package:flutter_app/core/service/questions_service.dart';
 import 'package:flutter_app/core/ui/handlers/error_handler.dart';
+import 'package:flutter_app/core/ui/overlay/connectivity_overlay.dart';
 import 'package:flutter_app/core/ui/view_model/view_model.dart';
 
 class HomeViewModel extends ViewModel {
   final BuildContext context;
+
   /// animation
   bool _isDragging = false;
   late Size _screenSize;
   double _angle = 0;
   Offset _position = Offset.zero;
   bool? _isGoingTrue;
+
   /// endAnimation
   HomeState _initialState = HomeState.data(const <Question>[]);
   HomeState _newState = HomeState.data(const []);
   late final Stream<HomeState> _stream;
   final StreamController<HomeEvent> _streamController =
       StreamController<HomeEvent>.broadcast();
+  // late final StreamSubscription<ConnectivityResult> _connectivitySubscription;
 
   /// animation getter
   bool? get isGoingTrue => _isGoingTrue;
   Offset get position => _position;
   double get angle => _angle;
   bool get isDragging => _isDragging;
+
   /// endAnimationGetter
   HomeState get initialState => _initialState;
   Stream<HomeState> get stream => _stream;
@@ -38,7 +43,7 @@ class HomeViewModel extends ViewModel {
       : super(errorHandler: errorHandler);
 
   @override
-  void onInit() {
+  Future<void> onInit() async {
     super.onInit();
     _stream = _streamController.stream
         .asyncExpand<HomeState>(_mapEventToState)
@@ -46,12 +51,35 @@ class HomeViewModel extends ViewModel {
         .asBroadcastStream();
     _stream.listen((event) {});
     _streamController.add(InitializeEvent());
+    // await _checkConnectivity();
+    if(ConnectivityOverlay.instance.overlayEntry != null){
+
+    }
+
   }
+
+  // Future<void> _checkConnectivity() async{
+  //   await _onConnectivityChanged(await Connectivity().checkConnectivity());
+  //   _connectivitySubscription =
+  //       Connectivity().onConnectivityChanged.listen(_onConnectivityChanged);
+  // }
+  //
+  // Future<void> _onConnectivityChanged(ConnectivityResult? e) async{
+  //   if(e == ConnectivityResult.none) {
+  //     print('net');
+  //     ConnectivityOverlay.instance.showOverlay(context, 'No internet');
+  //   }
+  //   else{
+  //     ConnectivityOverlay.instance.removeOverlay();
+  //     _streamController.add(InitializeEvent());
+  //   }
+  // }
 
   @override
   void dispose() {
     super.dispose();
-    _streamController.close();
+    // _connectivitySubscription.cancel();
+    // _streamController.close();
   }
 
   Stream<HomeState>? _mapEventToState(HomeEvent event) async* {
@@ -84,10 +112,12 @@ class HomeViewModel extends ViewModel {
 
   Future<void> _loadData() async {
     var questionData = <Question>[];
-    safe(() async {
-    }, onError: () {
-      // TODO(USEFUL): THINK ABOUT IT!!!!
-    },);
+    safe(
+      () async {},
+      onError: () {
+        // TODO(USEFUL): THINK ABOUT IT!!!!
+      },
+    );
     try {
       questionData = await QuestionsService().getQuestionsList();
     } on FirebaseException catch (e) {
@@ -151,7 +181,7 @@ class HomeViewModel extends ViewModel {
     if (isRight == _newState.questions?.last.answer) {
       await _nextCard();
     } else {
-      await Navigator.pushReplacementNamed(context, Routes.loosingScreen);
+      await context.router.replaceNamed(Routes.loosingScreen);
     }
   }
 
@@ -177,14 +207,8 @@ class HomeViewModel extends ViewModel {
     notifyListeners();
   }
 
-  // void resetImages() {
-  //   _streamController.add(InitializeEvent());
-  //   notifyListeners();
-  // }
-
   Future<void> logOut() async {
-    final navigator = Navigator.of(context);
     await FirebaseAuth.instance.signOut();
-    unawaited(navigator.pushReplacementNamed(Routes.introScreen));
+    await context.router.replaceNamed(Routes.introScreen);
   }
 }

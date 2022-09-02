@@ -1,12 +1,14 @@
 import 'dart:math';
 
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app/application/ui/screens/home_screen/home_events.dart';
 import 'package:flutter_app/application/ui/screens/home_screen/home_state.dart';
 import 'package:flutter_app/application/ui/screens/home_screen/home_view_model.dart';
+import 'package:flutter_app/core/ui/handlers/print_handler.dart';
 import 'package:provider/provider.dart';
 
-class HomeView extends StatelessWidget {
+class HomeView extends StatelessWidget implements AutoRouteWrapper {
   const HomeView({super.key});
 
   @override
@@ -74,7 +76,7 @@ class HomeView extends StatelessWidget {
     return GestureDetector(
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final provider = Provider.of<HomeViewModel>(context, listen: true);
+          final provider = Provider.of<HomeViewModel>(context);
           var milliseconds = provider.isDragging ? 0 : 400;
           final position = provider.position;
           if (position == Offset.zero) milliseconds = 0;
@@ -143,6 +145,17 @@ class HomeView extends StatelessWidget {
         ),
         upperText ?? const SizedBox.shrink(),
       ],
+    );
+  }
+
+  @override
+  Widget wrappedRoute(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (ctx) => HomeViewModel(
+        ctx,
+        const PrintErrorHandler(),
+      ),
+      child: this,
     );
   }
 }

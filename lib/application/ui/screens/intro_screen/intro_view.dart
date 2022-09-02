@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app/application/ui/navigation/main_navigation.dart';
@@ -86,7 +87,7 @@ class _IntroViewState extends State<IntroView>
               },
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  primary: Colors.white,
+                  backgroundColor: Colors.white,
                 ),
                 onPressed: () {
                   _controller.forward().then((value) {
@@ -110,7 +111,6 @@ class _IntroViewState extends State<IntroView>
 
   void startGame() {
     final isAuth = FirebaseAuth.instance.currentUser != null;
-    Navigator.of(context)
-        .pushReplacementNamed(isAuth ? Routes.homeScreen : Routes.authScreen);
+    context.router.replaceNamed(isAuth ? Routes.mainScreen : Routes.authScreen);
   }
 }

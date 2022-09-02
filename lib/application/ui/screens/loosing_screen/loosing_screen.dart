@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app/application/ui/navigation/main_navigation.dart';
 
@@ -58,7 +59,7 @@ class _LoosingScreenState extends State<LoosingScreen> {
   }
 
   void startAgain(BuildContext context) {
-    Navigator.pushReplacementNamed(context, Routes.introScreen);
+    context.router.replaceNamed(Routes.introScreen);
   }
 }
 
