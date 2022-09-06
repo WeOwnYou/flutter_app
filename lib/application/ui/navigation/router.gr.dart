@@ -17,18 +17,6 @@ class _$AppRouter extends RootStackRouter {
 
   @override
   final Map<String, PageFactory> pagesMap = {
-    IntroRoute.name: (routeData) {
-      return MaterialPageX<void>(
-          routeData: routeData, child: const IntroView());
-    },
-    LoosingRoute.name: (routeData) {
-      return MaterialPageX<void>(
-          routeData: routeData, child: const LoosingScreen());
-    },
-    AuthRoute.name: (routeData) {
-      return MaterialPageX<void>(
-          routeData: routeData, child: WrappedRoute(child: const AuthView()));
-    },
     BottomNavBarRoute.name: (routeData) {
       return MaterialPageX<void>(
           routeData: routeData,
@@ -59,19 +47,25 @@ class _$AppRouter extends RootStackRouter {
       return MaterialPageX<void>(
           routeData: routeData,
           child: WrappedRoute(
-              child:
-                  ProfileEditingView(key: args.key, userInfo: args.userInfo)));
+              child: ProfileEditingView(
+                  key: args.key, userInfo: args.userInfo, id: args.id)));
+    },
+    ProfileEditingDetailsRoute.name: (routeData) {
+      final pathParams = routeData.inheritedPathParams;
+      final args = routeData.argsAs<ProfileEditingDetailsRouteArgs>(
+          orElse: () =>
+              ProfileEditingDetailsRouteArgs(id: pathParams.optInt('id')));
+      return MaterialPageX<dynamic>(
+          routeData: routeData,
+          child: ProfileEditingDetailsView(key: args.key, id: args.id));
     }
   };
 
   @override
   List<RouteConfig> get routes => [
         RouteConfig('/#redirect',
-            path: '/', redirectTo: 'intro_screen', fullMatch: true),
-        RouteConfig(IntroRoute.name, path: 'intro_screen'),
-        RouteConfig(LoosingRoute.name, path: 'loosing_screen'),
-        RouteConfig(AuthRoute.name, path: 'auth_screen'),
-        RouteConfig(BottomNavBarRoute.name, path: 'main_screen', children: [
+            path: '/', redirectTo: '/main', fullMatch: true),
+        RouteConfig(BottomNavBarRoute.name, path: '/main', children: [
           RouteConfig(HomeRoute.name, path: '', parent: BottomNavBarRoute.name),
           RouteConfig(MockRoute1.name,
               path: 'mock-view1', parent: BottomNavBarRoute.name),
@@ -84,42 +78,20 @@ class _$AppRouter extends RootStackRouter {
                 RouteConfig(ProfileRoute.name,
                     path: '', parent: ProfileRouter.name),
                 RouteConfig(ProfileEditingRoute.name,
-                    path: 'profile_editing_screen', parent: ProfileRouter.name)
+                    path: 'profile_editing_screen/:id',
+                    parent: ProfileRouter.name),
+                RouteConfig(ProfileEditingDetailsRoute.name,
+                    path: 'details/:id', parent: ProfileRouter.name)
               ])
         ])
       ];
 }
 
 /// generated route for
-/// [IntroView]
-class IntroRoute extends PageRouteInfo<void> {
-  const IntroRoute() : super(IntroRoute.name, path: 'intro_screen');
-
-  static const String name = 'IntroRoute';
-}
-
-/// generated route for
-/// [LoosingScreen]
-class LoosingRoute extends PageRouteInfo<void> {
-  const LoosingRoute() : super(LoosingRoute.name, path: 'loosing_screen');
-
-  static const String name = 'LoosingRoute';
-}
-
-/// generated route for
-/// [AuthView]
-class AuthRoute extends PageRouteInfo<void> {
-  const AuthRoute() : super(AuthRoute.name, path: 'auth_screen');
-
-  static const String name = 'AuthRoute';
-}
-
-/// generated route for
 /// [BottomNavBarScreen]
 class BottomNavBarRoute extends PageRouteInfo<void> {
   const BottomNavBarRoute({List<PageRouteInfo>? children})
-      : super(BottomNavBarRoute.name,
-            path: 'main_screen', initialChildren: children);
+      : super(BottomNavBarRoute.name, path: '/main', initialChildren: children);
 
   static const String name = 'BottomNavBarRoute';
 }
@@ -169,23 +141,52 @@ class ProfileRoute extends PageRouteInfo<void> {
 /// generated route for
 /// [ProfileEditingView]
 class ProfileEditingRoute extends PageRouteInfo<ProfileEditingRouteArgs> {
-  ProfileEditingRoute({Key? key, required UserPersonalInfo userInfo})
+  ProfileEditingRoute({Key? key, required UserPersonalInfo userInfo, int? id})
       : super(ProfileEditingRoute.name,
-            path: 'profile_editing_screen',
-            args: ProfileEditingRouteArgs(key: key, userInfo: userInfo));
+            path: 'profile_editing_screen/:id',
+            args: ProfileEditingRouteArgs(key: key, userInfo: userInfo, id: id),
+            rawPathParams: {'id': id});
 
   static const String name = 'ProfileEditingRoute';
 }
 
 class ProfileEditingRouteArgs {
-  const ProfileEditingRouteArgs({this.key, required this.userInfo});
+  const ProfileEditingRouteArgs({this.key, required this.userInfo, this.id});
 
   final Key? key;
 
   final UserPersonalInfo userInfo;
 
+  final int? id;
+
   @override
   String toString() {
-    return 'ProfileEditingRouteArgs{key: $key, userInfo: $userInfo}';
+    return 'ProfileEditingRouteArgs{key: $key, userInfo: $userInfo, id: $id}';
+  }
+}
+
+/// generated route for
+/// [ProfileEditingDetailsView]
+class ProfileEditingDetailsRoute
+    extends PageRouteInfo<ProfileEditingDetailsRouteArgs> {
+  ProfileEditingDetailsRoute({Key? key, int? id})
+      : super(ProfileEditingDetailsRoute.name,
+            path: 'details/:id',
+            args: ProfileEditingDetailsRouteArgs(key: key, id: id),
+            rawPathParams: {'id': id});
+
+  static const String name = 'ProfileEditingDetailsRoute';
+}
+
+class ProfileEditingDetailsRouteArgs {
+  const ProfileEditingDetailsRouteArgs({this.key, this.id});
+
+  final Key? key;
+
+  final int? id;
+
+  @override
+  String toString() {
+    return 'ProfileEditingDetailsRouteArgs{key: $key, id: $id}';
   }
 }

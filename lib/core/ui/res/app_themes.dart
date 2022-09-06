@@ -14,6 +14,7 @@ abstract class AppThemes{
     scaffoldBackgroundColor: Colors.white,
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
+        // TODO(deprecated): fix this
         primary: Colors.deepPurple,
         onPrimary: Colors.deepOrange,
       ),

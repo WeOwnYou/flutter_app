@@ -4,7 +4,7 @@ class BuildOverlayEntryWidget extends StatefulWidget {
   final String text;
   final int secondsDuration;
   const BuildOverlayEntryWidget(
-      {required this.text, required this.secondsDuration, Key? key})
+      {required this.text, required this.secondsDuration, Key? key,})
       : super(key: key);
 
   @override

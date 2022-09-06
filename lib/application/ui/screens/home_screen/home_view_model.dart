@@ -75,12 +75,15 @@ class HomeViewModel extends ViewModel {
   //   }
   // }
 
+  /*
   @override
   void dispose() {
     super.dispose();
     // _connectivitySubscription.cancel();
     // _streamController.close();
   }
+
+   */
 
   Stream<HomeState>? _mapEventToState(HomeEvent event) async* {
     switch (event.runtimeType) {

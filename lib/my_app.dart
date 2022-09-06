@@ -44,8 +44,8 @@ class _MyAppState extends State<MyApp> {
       themeMode: ThemeMode.light,
       theme: AppThemes.lightTheme,
       darkTheme: AppThemes.darkTheme,
-      routerDelegate: AppRouter.instance.delegate(),
-      routeInformationParser: AppRouter.instance.defaultRouteParser(),
+      routerDelegate: AppRouter.instance().delegate(),
+      routeInformationParser: AppRouter.instance().defaultRouteParser(),
     );
   }
 

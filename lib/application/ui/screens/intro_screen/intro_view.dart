@@ -110,6 +110,6 @@ class _IntroViewState extends State<IntroView>
 
   void startGame() {
     final isAuth = FirebaseAuth.instance.currentUser != null;
-    AppRouter.instance.replaceNamed(isAuth ? Routes.mainScreen : Routes.authScreen);
+    AppRouter.instance().replaceNamed(isAuth ? Routes.mainScreen : Routes.authScreen);
   }
 }

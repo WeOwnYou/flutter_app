@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/application/ui/navigation/router.dart';
 import 'package:flutter_app/application/ui/screens/bottom_nav_bar_screen/bottom_nav_bar_vm.dart';
 import 'package:provider/provider.dart';
 
@@ -27,6 +28,7 @@ class ProfileView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print(AppRouter.instance().currentPath);
     final userInfo =
         context.select<BottomNavBarVm, UserPersonalInfo>((vm) => vm.userInfo);
     const fontStyle = TextStyle(fontSize: 30);

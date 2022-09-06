@@ -5,21 +5,21 @@ import 'package:flutter_app/application/ui/screens/profile_screen/profile_view.d
 
 class BottomNavBarVm extends ChangeNotifier {
   BuildContext context;
-  final User _user;
+  final User? _user;
   bool _isLoading = false;
   late UserPersonalInfo _userInfo;
 
   bool get isLoading => _isLoading;
   UserPersonalInfo get userInfo => _userInfo;
 
-  BottomNavBarVm(this.context) : _user = FirebaseAuth.instance.currentUser! {
+  BottomNavBarVm(this.context) : _user = FirebaseAuth.instance.currentUser {
     _loadUserInfo();
   }
   void _loadUserInfo([UserPersonalInfo? userPersonalInfo]) {
     _userInfo = UserPersonalInfo(
-      email: userPersonalInfo?.email ?? _user.email!,
-      userName: userPersonalInfo?.userName ?? _user.displayName,
-      phoneNumber: userPersonalInfo?.phoneNumber ?? _user.phoneNumber,
+      email: userPersonalInfo?.email ?? _user?.email ?? '',
+      userName: userPersonalInfo?.userName ?? _user?.displayName ?? '',
+      phoneNumber: userPersonalInfo?.phoneNumber ?? _user?.phoneNumber ?? '',
     );
     _isLoading = false;
     notifyListeners();
@@ -28,12 +28,12 @@ class BottomNavBarVm extends ChangeNotifier {
   Future<void> changeUserInfo(UserPersonalInfo userInfo) async {
     _isLoading = true;
     notifyListeners();
-    await _user.updateEmail(userInfo.email);
-    await _user.updateDisplayName(userInfo.userName);
+    await _user?.updateEmail(userInfo.email);
+    await _user?.updateDisplayName(userInfo.userName);
     _loadUserInfo(userInfo);
   }
 
   void onProfileEditPressed() {
-    AppRouter.instance.push(ProfileEditingRoute(userInfo: _userInfo));
+    AppRouter.instance().push(ProfileEditingRoute(userInfo: _userInfo, id: 13));
   }
 }

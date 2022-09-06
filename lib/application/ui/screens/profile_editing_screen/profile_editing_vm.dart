@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_app/application/ui/navigation/router.dart';
 import 'package:flutter_app/application/ui/screens/bottom_nav_bar_screen/bottom_nav_bar_vm.dart';
 import 'package:flutter_app/application/ui/screens/profile_screen/profile_view.dart';
 import 'package:provider/provider.dart';
@@ -22,6 +23,7 @@ class ProfileEditingVm extends ChangeNotifier {
     _emailController.text = userInfo.email;
     _phoneNumberController.text = userInfo.phoneNumber ?? '';
     _userNameController.text = userInfo.userName ?? '';
+    print(AppRouter.instance().currentPath);
   }
 
   Future<void> onSaveButtonTap() async {

@@ -8,7 +8,9 @@ import 'package:provider/provider.dart';
 
 class ProfileEditingView extends StatelessWidget implements AutoRouteWrapper {
   final UserPersonalInfo userInfo;
-  const ProfileEditingView({super.key, required this.userInfo});
+  final int? id;
+  const ProfileEditingView(
+      {super.key, required this.userInfo, @pathParam this.id});
 
   @override
   Widget build(BuildContext context) {
@@ -19,9 +21,18 @@ class ProfileEditingView extends StatelessWidget implements AutoRouteWrapper {
     final emailController = context.read<ProfileEditingVm>().emailController;
     final isLoading =
         context.select<ProfileEditingVm, bool>((vm) => vm.isLoading);
-    print('${AppRouter.instance.current.path}!!');
-    print('${context.router.current.path}??');
+    print('${AppRouter.instance().currentPath}!!');
+    // print('${context.router.current.path}??');
     return Scaffold(
+      appBar: AppBar(
+        actions: [
+          IconButton(
+              onPressed: () {
+                AppRouter.instance().push(ProfileEditingDetailsRoute(id: 14));
+              },
+              icon: const Icon(Icons.abc))
+        ],
+      ),
       body: Stack(
         children: [
           Column(
