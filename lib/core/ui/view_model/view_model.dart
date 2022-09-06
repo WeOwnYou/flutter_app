@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app/core/ui/handlers/error_handler.dart';
 
@@ -31,10 +30,7 @@ class ViewModel extends ChangeNotifier {
       await call();
     } on Exception catch (e) {
       onError?.call();
-      // TODO(FIX): FIX THIS!!!!!!!
-      if (e is DioError) {
-        handleError(e);
-      }
+      handleError(e);
     }
   }
 

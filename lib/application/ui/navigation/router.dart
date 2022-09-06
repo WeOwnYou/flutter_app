@@ -1,13 +1,14 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:auto_route/empty_router_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app/application/ui/screens/auth_screen/auth_view.dart';
 import 'package:flutter_app/application/ui/screens/bottom_nav_bar_screen/bottom_nav_bar_screen.dart';
 import 'package:flutter_app/application/ui/screens/home_screen/home_view.dart';
 import 'package:flutter_app/application/ui/screens/intro_screen/intro_view.dart';
 import 'package:flutter_app/application/ui/screens/loosing_screen/loosing_screen.dart';
-import 'package:flutter_app/application/ui/screens/profile_editing_screen/profile_editing_screen.dart';
+import 'package:flutter_app/application/ui/screens/profile_editing_screen/profile_editing_view.dart';
 import 'package:flutter_app/application/ui/screens/profile_screen/profile_view.dart';
-part 'main_navigation.gr.dart';
+part 'router.gr.dart';
 
 abstract class Routes {
   static const authScreen = 'auth_screen';
@@ -19,26 +20,28 @@ abstract class Routes {
 }
 
 @MaterialAutoRouter(
+  replaceInRouteName: 'Page|View|Screen,Route',
   routes: <AutoRoute>[
-    AutoRoute<Widget>(path: Routes.introScreen, page: IntroView, initial: true),
-    AutoRoute<Widget>(path: Routes.loosingScreen, page: LoosingScreen),
-    AutoRoute<Widget>(path: Routes.authScreen, page: AuthView),
-    AutoRoute<Widget>(
+    AutoRoute<void>(path: Routes.introScreen, page: IntroView, initial: true),
+    AutoRoute<void>(path: Routes.loosingScreen, page: LoosingScreen),
+    AutoRoute<void>(path: Routes.authScreen, page: AuthView),
+    AutoRoute<void>(
       path: Routes.mainScreen,
       page: BottomNavBarScreen,
       children: [
-        AutoRoute<Widget>(page: HomeView),
-        AutoRoute<Widget>(page: MockView1),
-        AutoRoute<Widget>(page: MockView2),
-        AutoRoute<Widget>(
+        AutoRoute<void>(page: HomeView, initial: true),
+        AutoRoute<void>(page: MockView1),
+        AutoRoute<void>(page: MockView2),
+        AutoRoute<void>(
           page: EmptyRouterPage,
+          name: 'ProfileRouter',
+          path: Routes.profileViewScreen,
           children: [
-            AutoRoute<Widget>(
+            AutoRoute<void>(
                 page: ProfileView,
-                initial: true,
-                path: Routes.profileViewScreen,),
-            AutoRoute<Widget>(
-              page: ProfileEditingScreen,
+                initial: true,),
+            AutoRoute<void>(
+              page: ProfileEditingView,
               path: Routes.profileEditingScreen,
             ),
           ],
@@ -47,15 +50,12 @@ abstract class Routes {
     ),
   ],
 )
-class AppRouter extends _$AppRouter {}
 
-class EmptyRouterPage extends StatelessWidget {
-  const EmptyRouterPage({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return const AutoRouter();
-  }
+class AppRouter extends _$AppRouter {
+  AppRouter._();
+  static final AppRouter _appRouter = AppRouter._();
+  static AppRouter get instance => _appRouter;
+  // factory AppRouter.instance() => _appRouter;
 }
 
 class MockView1 extends StatelessWidget {

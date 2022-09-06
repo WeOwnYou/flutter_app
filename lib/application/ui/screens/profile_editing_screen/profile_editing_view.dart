@@ -1,24 +1,26 @@
-import 'dart:async';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_app/application/ui/screens/bottom_nav_bar_screen/bottom_nav_bar_vm.dart';
+import 'package:flutter_app/application/ui/navigation/router.dart';
+import 'package:flutter_app/application/ui/screens/profile_editing_screen/profile_editing_vm.dart';
 import 'package:flutter_app/application/ui/screens/profile_screen/profile_view.dart';
 import 'package:flutter_app/core/ui/widgets/loading_widget.dart';
 import 'package:provider/provider.dart';
 
-class ProfileEditingScreen extends StatelessWidget {
-  const ProfileEditingScreen({Key? key}) : super(key: key);
+class ProfileEditingView extends StatelessWidget implements AutoRouteWrapper {
+  final UserPersonalInfo userInfo;
+  const ProfileEditingView({super.key, required this.userInfo});
 
   @override
   Widget build(BuildContext context) {
-    final userInfo = context.read<BottomNavBarVm>().userInfo;
-    final emailController = TextEditingController(text: userInfo.email);
+    final userNameController =
+        context.read<ProfileEditingVm>().userNameController;
     final phoneNumberController =
-        TextEditingController(text: userInfo.phoneNumber);
-    final userNameController = TextEditingController(text: userInfo.userName);
+        context.read<ProfileEditingVm>().phoneNumberController;
+    final emailController = context.read<ProfileEditingVm>().emailController;
     final isLoading =
-        context.select<BottomNavBarVm, bool>((vm) => vm.isLoading);
+        context.select<ProfileEditingVm, bool>((vm) => vm.isLoading);
+    print('${AppRouter.instance.current.path}!!');
+    print('${context.router.current.path}??');
     return Scaffold(
       body: Stack(
         children: [
@@ -62,17 +64,20 @@ class ProfileEditingScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.save),
-        onPressed: isLoading ? null : () async {
-          await context.read<BottomNavBarVm>().changeUserInfo(
-                UserPersonalInfo(
-                  email: emailController.text,
-                  phoneNumber: phoneNumberController.text,
-                  userName: userNameController.text,
-                ),
-              );
-          unawaited(context.router.pop());
-        },
+        onPressed:
+            isLoading ? null : context.read<ProfileEditingVm>().onSaveButtonTap,
       ),
+    );
+  }
+
+  @override
+  Widget wrappedRoute(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (ctx) => ProfileEditingVm(
+        ctx,
+        userInfo: userInfo,
+      ),
+      child: this,
     );
   }
 }

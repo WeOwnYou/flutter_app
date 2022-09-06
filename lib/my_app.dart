@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_app/application/ui/navigation/main_navigation.dart';
+import 'package:flutter_app/application/ui/navigation/router.dart';
 import 'package:flutter_app/core/ui/overlay/connectivity_overlay.dart';
 import 'package:flutter_app/core/ui/res/app_themes.dart';
 
@@ -15,7 +15,6 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   late final StreamSubscription<ConnectivityResult> _connectivitySubscription;
-  final _appRouter = AppRouter();
 
   @override
   void initState() {
@@ -45,8 +44,8 @@ class _MyAppState extends State<MyApp> {
       themeMode: ThemeMode.light,
       theme: AppThemes.lightTheme,
       darkTheme: AppThemes.darkTheme,
-      routerDelegate: _appRouter.delegate(),
-      routeInformationParser: _appRouter.defaultRouteParser(),
+      routerDelegate: AppRouter.instance.delegate(),
+      routeInformationParser: AppRouter.instance.defaultRouteParser(),
     );
   }
 

@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_app/application/ui/navigation/main_navigation.dart';
+import 'package:flutter_app/application/ui/navigation/router.dart';
 import 'package:flutter_app/application/ui/screens/bottom_nav_bar_screen/bottom_nav_bar_vm.dart';
 import 'package:provider/provider.dart';
 
@@ -11,10 +11,10 @@ class BottomNavBarScreen extends StatelessWidget implements AutoRouteWrapper {
   Widget build(BuildContext context) {
     return AutoTabsScaffold(
       routes: const [
-        HomeViewRoute(),
-        MockView1Route(),
-        MockView2Route(),
-        EmptyRouterPageRoute(),
+        HomeRoute(),
+        MockRoute1(),
+        MockRoute2(),
+        ProfileRouter(),
       ],
       bottomNavigationBuilder: (ctx, tabsRouter) {
         return BottomNavigationBar(

@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:auto_route/auto_route.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_app/application/ui/navigation/main_navigation.dart';
+import 'package:flutter_app/application/ui/navigation/router.dart';
 import 'package:flutter_app/application/ui/screens/home_screen/home_events.dart';
 import 'package:flutter_app/application/ui/screens/home_screen/home_state.dart';
 import 'package:flutter_app/core/service/questions_service.dart';

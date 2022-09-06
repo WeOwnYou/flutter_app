@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:auto_route/auto_route.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_app/application/ui/navigation/main_navigation.dart';
+import 'package:flutter_app/application/ui/navigation/router.dart';
 import 'package:flutter_app/core/ui/handlers/snack_bar_handler.dart';
 import 'package:flutter_app/core/ui/view_model/view_model.dart';
 

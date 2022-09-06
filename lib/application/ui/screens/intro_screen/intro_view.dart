@@ -1,7 +1,6 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_app/application/ui/navigation/main_navigation.dart';
+import 'package:flutter_app/application/ui/navigation/router.dart';
 
 class IntroView extends StatefulWidget {
   const IntroView({Key? key}) : super(key: key);
@@ -111,6 +110,6 @@ class _IntroViewState extends State<IntroView>
 
   void startGame() {
     final isAuth = FirebaseAuth.instance.currentUser != null;
-    context.router.replaceNamed(isAuth ? Routes.mainScreen : Routes.authScreen);
+    AppRouter.instance.replaceNamed(isAuth ? Routes.mainScreen : Routes.authScreen);
   }
 }
